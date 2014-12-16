@@ -1,4 +1,5 @@
-\chapter{Introduction}\label{introduction}
+\chapter*{Introduction}\label{introduction}
+\addcontentsline{toc}{chapter}{Introduction}
 
 This little handbook is based on the content of the
 \href{http://advent.plackperl.org/}{Plack Advent Calendar} website. The
@@ -20,7 +21,7 @@ under the Creative Commons license. See the LICENSE file for details.
 
 2012 September, Tatsuhiko Miyagawa
 
-\chapter{Day 1: Getting Plack}\label{day-1-getting-plack}
+\chapter{Getting Plack}\label{day-1-getting-plack}
 
 The most important step to get started is to install
 \href{http://search.cpan.org/dist/Plack}{Plack} and other utilities.
@@ -61,7 +62,7 @@ disabled by default.
 Start reading the documentation with \lstinline!perldoc Plack! to get
 prepared.
 
-\chapter{Day 2: Hello World}\label{day-2-hello-world}
+\chapter{Hello World}\label{day-2-hello-world}
 
 The first program you write in any programming language is the one that
 prints ``Hello World''. Let's follow that tradition for PSGI as well.
@@ -146,7 +147,7 @@ otherwise a 404. You can see that a Perl filehandle (\lstinline!$fh!) is
 a valid PSGI response, and you can use any valid HTTP status code for a
 response.
 
-\chapter{Day 3: Using plackup}\label{day-3-using-plackup}
+\chapter{Using plackup}\label{day-3-using-plackup}
 
 In the
 \href{http://advent.plackperl.org/2009/12/day-2-hello-world.html}{Day 2}
@@ -225,7 +226,7 @@ For more options for plackup, run \lstinline!perldoc plackup! from the
 command line. You'll see more plackup options and hacks tomorrow as
 well.
 
-\chapter{Day 4: Reloading
+\chapter{Reloading
 applications}\label{day-4-reloading-applications}
 
 \href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{Yesterday}
@@ -309,7 +310,7 @@ the following options:
 This speeds up the time required to compile your application in the
 runtime.
 
-\chapter{Day 5: Run a static web server with
+\chapter{Run a static web server with
 Plack}\label{day-5-run-a-static-web-server-with-plack}
 
 The Plack distribution comes with some ready made PSGI applications in
@@ -362,7 +363,7 @@ Plack::App::* applications without ever touching a .psgi file!
 There are a couple of other Plack::App applications in the Plack
 distribution.
 
-\chapter{Day 6: Convert CGI apps to
+\chapter{Convert CGI apps to
 PSGI}\label{day-6-convert-cgi-apps-to-psgi}
 
 The most popular web server environments to run web applications for
@@ -412,7 +413,7 @@ reference containing the list of HTTP headers.
 Tomorrow I'll talk about how to convert existing web frameworks that use
 CGI.pm to PSGI using CGI::PSGI.
 
-\chapter{Day 7: Use web application framework in
+\chapter{Use web application framework in
 PSGI}\label{day-7-use-web-application-framework-in-psgi}
 
 Since we started the Plack and PSGI project in September 2009 there has
@@ -469,7 +470,7 @@ switching to PSGI there are lots of benefits like being able to use the
 toolchain of plackup, Plack::Test, and middleware which we'll discuss in
 future advent entries.
 
-\chapter{Day 8: Adapting web frameworks to
+\chapter{Adapting web frameworks to
 PSGI}\label{day-8-adapting-web-frameworks-to-psgi}
 
 The biggest benefit of PSGI for web application framework developers is
@@ -647,7 +648,7 @@ post}. The
 \href{http://github.com/pdonelan/webgui/blob/plebgui/lib/WebGUI/Session/Plack.pm}{mock
 request class linked} is a good place to start.
 
-\chapter{Day 9: Running CGI scripts on
+\chapter{Running CGI scripts on
 Plack}\label{day-9-running-cgi-scripts-on-plack}
 
 For the last couple of days we've been talking about how to convert
@@ -709,7 +710,7 @@ http://localhost:5000/foo.pl to run the CGI application as a PSGI over
 the plackup, just like the scripts running on Apache mod\_perl Registry
 mechanism.
 
-\chapter{Day 10: Using Plack
+\chapter{Using Plack
 middleware}\label{day-10-using-plack-middleware}
 
 \section{Middleware}\label{middleware}
@@ -820,7 +821,7 @@ based application. You can do the same with
 \href{http://plackperl.org/\#frameworks}{any other frameworks that
 supports PSGI}.
 
-\chapter{Day 11: Using Plack::Builder}\label{day-11-using-plackbuilder}
+\chapter{Using Plack::Builder}\label{day-11-using-plackbuilder}
 
 \href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{Yesterday}
 we saw how to enable Plack middleware components in .psgi file, using
@@ -903,7 +904,7 @@ You can see that they have \lstinline!map! which is to map applications
 to a different path, and we'll talk about its equivalent in Plack
 tomorrow ;)
 
-\chapter{Day 12: Maps multiple apps with mount and
+\chapter{Maps multiple apps with mount and
 URLMap}\label{day-12-maps-multiple-apps-with-mount-and-urlmap}
 
 \section{Hello World! but anyone
@@ -1033,7 +1034,7 @@ And now you have three applications, each of which inherit from
 different web framework, running on the same server (via plackup or
 other Plack::Handler::* implementations) mapped on different paths.
 
-\chapter{Day 13: use Plack::Test to test your
+\chapter{use Plack::Test to test your
 application}\label{day-13-use-placktest-to-test-your-application}
 
 \section{Testing}\label{testing}
@@ -1173,7 +1174,7 @@ done_testing;
 You can of course do the same thing against any frameworks that supports
 PSGI.
 
-\chapter{Day 14: Use Plack::Request}\label{day-14-use-plackrequest}
+\chapter{Use Plack::Request}\label{day-14-use-plackrequest}
 
 Plack is not a framework per se, but is more of a toolkit that contains
 PSGI server implementations as well as utilities like
@@ -1249,7 +1250,7 @@ framework to
 \href{http://advent.plackperl.org/2009/12/day-8-adapting-web-frameworks-to-psgi.html}{adapt
 to PSGI interface}.
 
-\chapter{Day 15: Authenticate your app with
+\chapter{Authenticate your app with
 Middleware}\label{day-15-authenticate-your-app-with-middleware}
 
 There're lots of Plack middleware components out there, whether in Plack
@@ -1373,7 +1374,7 @@ and ``/public'' doesn't. (Inlining \lstinline!$env->{REMOTE_USER}!, or
 whatever application logic in .psgi is not really recommended -- i just
 used it to explain it in an obvious way)
 
-\chapter{Day 16: Adding JSONP support to your
+\chapter{Adding JSONP support to your
 app}\label{day-16-adding-jsonp-support-to-your-app}
 
 Today we'll see another very simple but useful example of a middleware
@@ -1471,7 +1472,7 @@ Accidentally this
 is my module :) and supports JSONP callback configuration by default,
 but there is more than one way to do it!
 
-\chapter{Day 17: Serving static files from your
+\chapter{Serving static files from your
 application}\label{day-17-serving-static-files-from-your-application}
 
 On
@@ -1554,7 +1555,7 @@ callback based configuration allows you to write more complex regular
 expression, which you can't do with URLMap and mount, so choose
 whichever fits your need.
 
-\chapter{Day 18: Load middleware
+\chapter{Load middleware
 conditionally}\label{day-18-load-middleware-conditionally}
 
 I've introduced a couple of middleware components. Some of them are
@@ -1633,7 +1634,7 @@ $app = Plack::Middleware::Conditional->wrap($app,
 But it's a little boring to write, so we added a DSL version, which I
 recommend to use :)
 
-\chapter{Day 19: Cascade multiple
+\chapter{Cascade multiple
 applications}\label{day-19-cascade-multiple-applications}
 
 \href{http://advent.plackperl.org/2009/12/day-18-load-middleware-conditionally.html}{Conditional
@@ -1719,7 +1720,7 @@ Well that might sound crazy and i guess it's better to use URLMap to map
 two applications in different paths, but if you \emph{really want} to
 cascade them, this is the way to go :)
 
-\chapter{Day 20: Access your local app from the
+\chapter{Access your local app from the
 internet}\label{day-20-access-your-local-app-from-the-internet}
 
 (\textbf{EDIT}: the reverseHTTP service we mention here is not available
@@ -1798,7 +1799,7 @@ your application that needs a global access, or show off your work to
 friends that don't have an internal access. Much easier than other
 solutions that requires other software like SSH or VPN tunneling.
 
-\chapter{Day 21: Lint your application and
+\chapter{Lint your application and
 middleware}\label{day-21-lint-your-application-and-middleware}
 
 We've been talking about
@@ -1880,7 +1881,7 @@ requests and responses pairs to test a new PSGI server backend. Existing
 Plack::Handler backends included in Plack core distribution as well as
 other CPAN distributions all pass this test suite.
 
-\chapter{Day 22: Discover more
+\chapter{Discover more
 middleware}\label{day-22-discover-more-middleware}
 
 Christmas is coming near and there aren't enough days to explore more
@@ -2018,7 +2019,7 @@ distribution, and on
 Not all middleware components are supposed to be great, but certainly
 they can be shared and used by most frameworks that support PSGI.
 
-\chapter{Day 23: Write your own
+\chapter{Write your own
 middleware}\label{day-23-write-your-own-middleware}
 
 Let's finish up this middleware discovery with ``Do It Yourself''
@@ -2188,7 +2189,7 @@ $app = MyFramework::Middleware::Foo->wrap($app, ...);
 
 and they should work just fine.
 
-\chapter{Day 24: Wrap up}\label{day-24-wrap-up}
+\chapter{Wrap up}\label{day-24-wrap-up}
 
 24 days have passed so fast and this is the last entry for this Plack
 advent calendar.

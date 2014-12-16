@@ -5,6 +5,12 @@
 \usepackage{libertine}
 \usepackage[scaled=0.95]{inconsolata}
 \usepackage{microtype}
+\SetTracking
+  [ spacing = {25*,166, } ]
+  { encoding = *,
+    shape = sc }
+  { 50 }
+
 \usepackage{graphicx}
 \usepackage{listings}
 \lstset{
@@ -18,8 +24,26 @@
   xleftmargin=\parindent,
   language=Perl
 }
-
+\usepackage{titlesec}
 \usepackage{hyperref}
+
+\titleformat{\chapter}[display]
+    {\normalfont\rmfamily\filcenter}
+    {\LARGE\scshape\lsstyle Day \thechapter}
+    {0.5pc}
+    {\Large\itshape}
+\titlespacing*{\chapter}
+  {0pt}{*0}{*10}
+
+\titleformat{\section}
+  {\normalfont\large\bfseries}
+  {\llap{\thesection\hspace{1.5ex}}}
+  {0pt}
+  {}
+\titlespacing*{\section}
+  {0pt}{*2}{*1}
+
+\renewcommand{\thesection}{\arabic{section}}
 
 \graphicspath{{images/}}
 
