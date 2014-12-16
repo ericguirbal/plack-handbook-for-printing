@@ -3,9 +3,22 @@
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
 \usepackage{libertine}
+\usepackage[scaled=0.95]{inconsolata}
 \usepackage{microtype}
 \usepackage{graphicx}
 \usepackage{listings}
+\lstset{
+  basicstyle=\normalsize\ttfamily\lst@ifdisplaystyle\footnotesize\fi,
+  breaklines=true,
+  breakatwhitespace=true,
+  keepspaces=true,
+  columns=fixed,
+  showspaces=false,
+  showstringspaces=false,
+  xleftmargin=\parindent,
+  language=Perl
+}
+
 \usepackage{hyperref}
 
 \graphicspath{{images/}}
