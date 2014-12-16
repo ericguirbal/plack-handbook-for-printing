@@ -1,4 +1,4 @@
-\section{Introduction}\label{introduction}
+\chapter{Introduction}\label{introduction}
 
 This little handbook is based on the content of the
 \href{http://advent.plackperl.org/}{Plack Advent Calendar} website. The
@@ -20,7 +20,7 @@ under the Creative Commons license. See the LICENSE file for details.
 
 2012 September, Tatsuhiko Miyagawa
 
-\section{Day 1: Getting Plack}\label{day-1-getting-plack}
+\chapter{Day 1: Getting Plack}\label{day-1-getting-plack}
 
 The most important step to get started is to install
 \href{http://search.cpan.org/dist/Plack}{Plack} and other utilities.
@@ -61,7 +61,7 @@ disabled by default.
 Start reading the documentation with \lstinline!perldoc Plack! to get
 prepared.
 
-\section{Day 2: Hello World}\label{day-2-hello-world}
+\chapter{Day 2: Hello World}\label{day-2-hello-world}
 
 The first program you write in any programming language is the one that
 prints ``Hello World''. Let's follow that tradition for PSGI as well.
@@ -72,7 +72,7 @@ this unless you're a web application framework developer. Instead you
 should use one of the \href{http://plackperl.org/\#frameworks}{existing
 frameworks that supports PSGI}.
 
-\subsection{Hello, World}\label{hello-world}
+\section{Hello, World}\label{hello-world}
 
 Here's the minimal code that prints ``Hello World'' to the client:
 
@@ -100,7 +100,7 @@ plackup runs your application with the default HTTP server
 HTTP::Server::PSGI on localhost port 5000. Open the URL
 http://127.0.0.1:5000/ and you should see the ``Hello World'' page.
 
-\subsection{Give me something
+\section{Give me something
 different}\label{give-me-something-different}
 
 Hello World is the simplest code imaginable. We can do more here. Let's
@@ -146,7 +146,7 @@ otherwise a 404. You can see that a Perl filehandle (\lstinline!$fh!) is
 a valid PSGI response, and you can use any valid HTTP status code for a
 response.
 
-\section{Day 3: Using plackup}\label{day-3-using-plackup}
+\chapter{Day 3: Using plackup}\label{day-3-using-plackup}
 
 In the
 \href{http://advent.plackperl.org/2009/12/day-2-hello-world.html}{Day 2}
@@ -225,14 +225,14 @@ For more options for plackup, run \lstinline!perldoc plackup! from the
 command line. You'll see more plackup options and hacks tomorrow as
 well.
 
-\section{Day 4: Reloading
+\chapter{Day 4: Reloading
 applications}\label{day-4-reloading-applications}
 
 \href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{Yesterday}
 I introduced the basics of plackup and its command line options. Today
 I'll show you more!
 
-\subsection{Reload the application as
+\section{Reload the application as
 necessary}\label{reload-the-application-as-necessary}
 
 During development you often change your Perl code, saved in
@@ -265,7 +265,7 @@ you're on Linux and have Linux::Inotify2 installed or on Mac OS and have
 Mac::FSEvents installed filesystem notification is used so it's more
 efficient.
 
-\subsection{-r vs Server
+\section{-r vs Server
 auto-detection}\label{r-vs-server-auto-detection}
 
 In Day 3 I told you that plackup's automatic server detection is smart
@@ -276,7 +276,7 @@ because plackup uses a delayed loading technique to reload apps in
 forked processes. It's recommended that you explicitly set the server
 with the \lstinline!-s! option when using the \lstinline!-r! option.
 
-\subsection{Reloading sucks? Shotgun!}\label{reloading-sucks-shotgun}
+\section{Reloading sucks? Shotgun!}\label{reloading-sucks-shotgun}
 
 Reloading a module or application in a persistent Perl process can cause
 problems. For instance, module package variables could be redefined or
@@ -309,7 +309,7 @@ the following options:
 This speeds up the time required to compile your application in the
 runtime.
 
-\section{Day 5: Run a static web server with
+\chapter{Day 5: Run a static web server with
 Plack}\label{day-5-run-a-static-web-server-with-plack}
 
 The Plack distribution comes with some ready made PSGI applications in
@@ -362,7 +362,7 @@ Plack::App::* applications without ever touching a .psgi file!
 There are a couple of other Plack::App applications in the Plack
 distribution.
 
-\section{Day 6: Convert CGI apps to
+\chapter{Day 6: Convert CGI apps to
 PSGI}\label{day-6-convert-cgi-apps-to-psgi}
 
 The most popular web server environments to run web applications for
@@ -412,7 +412,7 @@ reference containing the list of HTTP headers.
 Tomorrow I'll talk about how to convert existing web frameworks that use
 CGI.pm to PSGI using CGI::PSGI.
 
-\section{Day 7: Use web application framework in
+\chapter{Day 7: Use web application framework in
 PSGI}\label{day-7-use-web-application-framework-in-psgi}
 
 Since we started the Plack and PSGI project in September 2009 there has
@@ -469,7 +469,7 @@ switching to PSGI there are lots of benefits like being able to use the
 toolchain of plackup, Plack::Test, and middleware which we'll discuss in
 future advent entries.
 
-\section{Day 8: Adapting web frameworks to
+\chapter{Day 8: Adapting web frameworks to
 PSGI}\label{day-8-adapting-web-frameworks-to-psgi}
 
 The biggest benefit of PSGI for web application framework developers is
@@ -484,7 +484,7 @@ base class or the like).
 Today's entry discusses how to convert existing web application
 frameworks to the PSGI interface.
 
-\subsection{CGI.pm based framework}\label{cgi.pm-based-framework}
+\section{CGI.pm based framework}\label{cgi.pm-based-framework}
 
 In Day 7 we saw how to run a CGI::Application based application in PSGI
 using CGI::Application::PSGI. CGI::Application, as the name suggests,
@@ -544,7 +544,7 @@ pretty much all looked alike:
   Extract the response body (content).
 \end{itemize}
 
-\subsection{Adapter based framework}\label{adapter-based-framework}
+\section{Adapter based framework}\label{adapter-based-framework}
 
 If the framework in question already uses adapter based approaches to
 abstract server environments it should be much easier to adapt to PSGI
@@ -634,7 +634,7 @@ Similarly, Catalyst uses the Catalyst::Engine abstraction and
 is the adapter to run Catalyst on PSGI, where most of the code is copied
 from CGI.
 
-\subsection{mod\_perl centric
+\section{mod\_perl centric
 frameworks}\label{modux5fperl-centric-frameworks}
 
 Some frameworks are centered around mod\_perl's API, in which case we
@@ -647,7 +647,7 @@ post}. The
 \href{http://github.com/pdonelan/webgui/blob/plebgui/lib/WebGUI/Session/Plack.pm}{mock
 request class linked} is a good place to start.
 
-\section{Day 9: Running CGI scripts on
+\chapter{Day 9: Running CGI scripts on
 Plack}\label{day-9-running-cgi-scripts-on-plack}
 
 For the last couple of days we've been talking about how to convert
@@ -709,10 +709,10 @@ http://localhost:5000/foo.pl to run the CGI application as a PSGI over
 the plackup, just like the scripts running on Apache mod\_perl Registry
 mechanism.
 
-\section{Day 10: Using Plack
+\chapter{Day 10: Using Plack
 middleware}\label{day-10-using-plack-middleware}
 
-\subsection{Middleware}\label{middleware}
+\section{Middleware}\label{middleware}
 
 Middleware is a concept in PSGI (as always, stolen from Python's WSGI
 and Ruby's Rack) where we define components that plays the both side of
@@ -736,7 +736,7 @@ Lots of functionalities can be added to the PSGI application by wrapping
 it with a middleware component, from HTTP authentication, capturing
 errors to logging output or wrapping JSON output with JSONP.
 
-\subsection{Plack::Middleware}\label{plackmiddleware}
+\section{Plack::Middleware}\label{plackmiddleware}
 
 \href{http://search.cpan.org/perldoc?Plack::Middleware}{Plack::Middleware}
 is a base class for middleware components and it allows you to write
@@ -789,7 +789,7 @@ builder {
 
 We'll see more about Plack::Builder tomorrow.
 
-\subsection{Middleware and Frameworks}\label{middleware-and-frameworks}
+\section{Middleware and Frameworks}\label{middleware-and-frameworks}
 
 The beauty of Middleware is that it can wrap \emph{any} PSGI
 application. It might not be obvious from the code examples, but the
@@ -820,7 +820,7 @@ based application. You can do the same with
 \href{http://plackperl.org/\#frameworks}{any other frameworks that
 supports PSGI}.
 
-\section{Day 11: Using Plack::Builder}\label{day-11-using-plackbuilder}
+\chapter{Day 11: Using Plack::Builder}\label{day-11-using-plackbuilder}
 
 \href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{Yesterday}
 we saw how to enable Plack middleware components in .psgi file, using
@@ -829,7 +829,7 @@ middleware and then wrap the \lstinline!$app! with \lstinline!wrap! is
 tedious and not intuitive, so we have a DSL (Domain Specific Language)
 to make it much easier, and that is Plack::Builder.
 
-\subsection{Using Plack::Builder}\label{using-plackbuilder}
+\section{Using Plack::Builder}\label{using-plackbuilder}
 
 The way you use Plack::Builder is so easy. Just use the keywords
 \lstinline!builder! and \lstinline!enable!:
@@ -860,7 +860,7 @@ $app = Plack::Middleware::JSONP->wrap($app);
 
 but without lots of \lstinline!use!ing the module which is anti DRY.
 
-\subsection{Outer to Inner, Top to the
+\section{Outer to Inner, Top to the
 bottom}\label{outer-to-inner-top-to-the-bottom}
 
 Notice that the order of middleware wrapping is in reverse? The
@@ -882,7 +882,7 @@ enable "+MyFramework::PSGI::MW::Foo";
 the key here is to use the plus (+) sign to indicate that it is a fully
 qualified class name.
 
-\subsection{What's happening behind}\label{whats-happening-behind}
+\section{What's happening behind}\label{whats-happening-behind}
 
 If you're curious what Plack::Builder is doing, take a look at the code
 and see what's happening. The \lstinline!builder! takes the code block
@@ -893,7 +893,7 @@ order. So it is important to have \lstinline!$app! in the last line
 inside the \lstinline!builder! block, and have the \lstinline!builder!
 statement as the final statement in .psgi file as well.
 
-\subsection{Thanks, Rack}\label{thanks-rack}
+\section{Thanks, Rack}\label{thanks-rack}
 
 This idea of Plack::Builder is totally an inspiration by
 \href{http://m.onkey.org/2008/11/18/ruby-on-rack-2-rack-builder}{Rack::Builder}.
@@ -903,10 +903,10 @@ You can see that they have \lstinline!map! which is to map applications
 to a different path, and we'll talk about its equivalent in Plack
 tomorrow ;)
 
-\section{Day 12: Maps multiple apps with mount and
+\chapter{Day 12: Maps multiple apps with mount and
 URLMap}\label{day-12-maps-multiple-apps-with-mount-and-urlmap}
 
-\subsection{Hello World! but anyone
+\section{Hello World! but anyone
 else?}\label{hello-world-but-anyone-else}
 
 Throughout the advent calendar we most of the time use the simplest web
@@ -922,7 +922,7 @@ what about more complex examples, like you have multiple applications,
 each of which inherit from one of the web application frameworks, and
 use one of apache magic like mod\_alias etc.
 
-\subsection{Plack::App::URLMap}\label{plackappurlmap}
+\section{Plack::App::URLMap}\label{plackappurlmap}
 
 Plack::App::URLMap allows you to \emph{composite} multiple PSGI
 applications into one application, to dispatch requests to multiple
@@ -963,7 +963,7 @@ scripts. Your application framework should always use
 \lstinline!PATH_INFO! to dispatch requests, and concatenate with
 \lstinline!SCRIPT_NAME! to build links.
 
-\subsection{mount in DSL}\label{mount-in-dsl}
+\section{mount in DSL}\label{mount-in-dsl}
 
 This \lstinline!mount! interface with Plack::App::URLMap is quite
 useful, so we decided to add to Plack::Builder DSL itself, which is
@@ -997,7 +997,7 @@ $app->mount("/bob",  $app2);
 but obviously, with less code to write and more obvious to understand
 what's going on.
 
-\subsection{Multi tenant frameworks}\label{multi-tenant-frameworks}
+\section{Multi tenant frameworks}\label{multi-tenant-frameworks}
 
 Of course you can use this URLMap and mount API to run multiple
 framework applications on one server. Imagine you have three
@@ -1033,10 +1033,10 @@ And now you have three applications, each of which inherit from
 different web framework, running on the same server (via plackup or
 other Plack::Handler::* implementations) mapped on different paths.
 
-\section{Day 13: use Plack::Test to test your
+\chapter{Day 13: use Plack::Test to test your
 application}\label{day-13-use-placktest-to-test-your-application}
 
-\subsection{Testing}\label{testing}
+\section{Testing}\label{testing}
 
 There are many ways to test web applications, either with a live server
 or using a mock request technique. Some web application frameworks allow
@@ -1047,7 +1047,7 @@ Plack::Test gives you \emph{a unified interface} to test \emph{any} web
 applications and frameworks that is compatible to PSGI using \emph{both}
 mock request and live HTTP server.
 
-\subsection{Using Plack::Test}\label{using-placktest}
+\section{Using Plack::Test}\label{using-placktest}
 
 Using Plack::Test is pretty simple and it's of course compatible to the
 Perl's standard testing protocol
@@ -1097,7 +1097,7 @@ want, and test various attributes and response details.
 Save that code as \lstinline!.t! file and use the tool such as
 \lstinline!prove! to run the tests.
 
-\subsection{use HTTP::Request::Common}\label{use-httprequestcommon}
+\section{use HTTP::Request::Common}\label{use-httprequestcommon}
 
 This is not required, but recommended to use
 \href{http://search.cpan.org/perldoc?HTTP::Request::Common}{HTTP::Request::Common}
@@ -1117,7 +1117,7 @@ test_psgi $app, sub {
 Notice that you can even omit the scheme and hostname, which would
 default to http://localhost/ anyway.
 
-\subsection{Run in a server/mock mode}\label{run-in-a-servermock-mode}
+\section{Run in a server/mock mode}\label{run-in-a-servermock-mode}
 
 By default the \lstinline!test_psgi! function's callback runs as a
 \emph{Mock HTTP} request mode, turning a HTTP::Request object into a
@@ -1147,7 +1147,7 @@ and uses LWP::UserAgent to send the live HTTP request. You don't need to
 modify your testing client code, and the callback would automatically
 adjust host names and port numbers depending on the test configuration.
 
-\subsection{Test your web application framework with
+\section{Test your web application framework with
 Plack::Test}\label{test-your-web-application-framework-with-placktest}
 
 Once again, the beauty of PSGI and Plack is that everything written to
@@ -1173,7 +1173,7 @@ done_testing;
 You can of course do the same thing against any frameworks that supports
 PSGI.
 
-\section{Day 14: Use Plack::Request}\label{day-14-use-plackrequest}
+\chapter{Day 14: Use Plack::Request}\label{day-14-use-plackrequest}
 
 Plack is not a framework per se, but is more of a toolkit that contains
 PSGI server implementations as well as utilities like
@@ -1193,7 +1193,7 @@ when writing a new middleware component, and a base class for
 requests/responses when you write a new web application framework based
 on Plack.
 
-\subsection{Use Plack::Request and
+\section{Use Plack::Request and
 Response}\label{use-plackrequest-and-response}
 
 Plack::Request is a wrapper around PSGI environment, and the code goes
@@ -1225,13 +1225,13 @@ HTTP::Engine::Request and Response object which is very similar to
 \href{http://search.cpan.org/dist/Catalyst-Runtime}{Catalyst} 's Request
 and Response object.
 
-\subsection{Plack::Request and Plack}\label{plackrequest-and-plack}
+\section{Plack::Request and Plack}\label{plackrequest-and-plack}
 
 Plack::Request is available as part of Plack on CPAN. Your framework can
 use Plack::Request to handle parameters and can also make it run on
 other PSGI server implementations such as mod\_psgi.
 
-\subsection{Use Plack::Request or not?}\label{use-plackrequest-or-not}
+\section{Use Plack::Request or not?}\label{use-plackrequest-or-not}
 
 Directly using Plack::Request in the \lstinline!.psgi! code is quite
 handy to quickly write and test your code but not really recommended for
@@ -1249,7 +1249,7 @@ framework to
 \href{http://advent.plackperl.org/2009/12/day-8-adapting-web-frameworks-to-psgi.html}{adapt
 to PSGI interface}.
 
-\section{Day 15: Authenticate your app with
+\chapter{Day 15: Authenticate your app with
 Middleware}\label{day-15-authenticate-your-app-with-middleware}
 
 There're lots of Plack middleware components out there, whether in Plack
@@ -1260,7 +1260,7 @@ interest and taken ideas out of my wishlist.
 From today we'll introduce some of the nice middleware components that
 you can use quickly to enhance any of your PSGI ready applications.
 
-\subsection{Basic authentication}\label{basic-authentication}
+\section{Basic authentication}\label{basic-authentication}
 
 Since Plack middleware wraps an application, the best thing it can do is
 pre-process or post-process to do things around HTTP layers. Today let's
@@ -1288,7 +1288,7 @@ Plack::Middleware::Auth::Basic is to do this for Basic authentication.
 And this is why most Plack standalone servers do not have an
 authentication system: it's best implemented as a middleware component.
 
-\subsection{Using
+\section{Using
 Plack::Middleware::Auth::Basic}\label{using-plackmiddlewareauthbasic}
 
 Just like
@@ -1341,7 +1341,7 @@ The same way you can use lots of
 \href{http://search.cpan.org/search?query=authen+simple\&mode=all}{Authen::Simple
 backends} with small changes.
 
-\subsection{With URLMap}\label{with-urlmap}
+\section{With URLMap}\label{with-urlmap}
 
 URLMap allows you to compound multiple apps into one app, so combined
 with Auth middleware, you can run the same application in a auth
@@ -1373,14 +1373,14 @@ and ``/public'' doesn't. (Inlining \lstinline!$env->{REMOTE_USER}!, or
 whatever application logic in .psgi is not really recommended -- i just
 used it to explain it in an obvious way)
 
-\section{Day 16: Adding JSONP support to your
+\chapter{Day 16: Adding JSONP support to your
 app}\label{day-16-adding-jsonp-support-to-your-app}
 
 Today we'll see another very simple but useful example of a middleware
 component, this time to add functionality beyond just basic HTTP
 functions.
 
-\subsection{JSONP}\label{jsonp}
+\section{JSONP}\label{jsonp}
 
 \href{http://ajaxian.com/archives/jsonp-json-with-padding}{JSONP}
 (JSON-Padding) is a technology to wrap JSON in a JavaScript callback
@@ -1388,7 +1388,7 @@ function. This is normally useful when you want to allow your JSON-based
 content included programatically in the third party websites using HTML
 \lstinline!script! tags.
 
-\subsection{Middleware::JSONP}\label{middlewarejsonp}
+\section{Middleware::JSONP}\label{middlewarejsonp}
 
 Assume your web application returns a JSON encoded data with the
 Content-Type \lstinline!application/json!, again with a simple inline
@@ -1431,7 +1431,7 @@ myCallback({"hello":"world"});
 with the Content-Type \lstinline!text/javascript!. Content-Length is
 automatically adjusted if there's any.
 
-\subsection{Works with frameworks}\label{works-with-frameworks}
+\section{Works with frameworks}\label{works-with-frameworks}
 
 Supporting JSONP in addition to JSON would be fairly trivial for most
 frameworks to do, but Middleware::JSONP should be an example of the
@@ -1471,7 +1471,7 @@ Accidentally this
 is my module :) and supports JSONP callback configuration by default,
 but there is more than one way to do it!
 
-\section{Day 17: Serving static files from your
+\chapter{Day 17: Serving static files from your
 application}\label{day-17-serving-static-files-from-your-application}
 
 On
@@ -1485,7 +1485,7 @@ multiple applications with URLMap} it's extremely trivial to add a
 functionality you definitely need when developing an application:
 serving static files.
 
-\subsection{Serving files from a certain
+\section{Serving files from a certain
 path}\label{serving-files-from-a-certain-path}
 
 Most frameworks come with this feature but with PSGI and Plack,
@@ -1531,7 +1531,7 @@ As a result, ``/static/foo.jpg'' would become
 ``./static-files/foo.jpg''. All requests not matching the pattern match
 just passes through to the original \lstinline!$app!.
 
-\subsection{Do it your own with URLMap and
+\section{Do it your own with URLMap and
 App::File}\label{do-it-your-own-with-urlmap-and-appfile}
 
 Just like Perl there's more than one way to do it. When you grok how to
@@ -1554,7 +1554,7 @@ callback based configuration allows you to write more complex regular
 expression, which you can't do with URLMap and mount, so choose
 whichever fits your need.
 
-\section{Day 18: Load middleware
+\chapter{Day 18: Load middleware
 conditionally}\label{day-18-load-middleware-conditionally}
 
 I've introduced a couple of middleware components. Some of them are
@@ -1562,7 +1562,7 @@ useful and could be enabled globally, while others might be better
 enabled on certain conditions. Today we'll talk about a solution to
 this.
 
-\subsection{Load middleware
+\section{Load middleware
 conditionally}\label{load-middleware-conditionally}
 
 Conditional middleware is a super (or meta) middleware that takes one
@@ -1586,7 +1586,7 @@ Rack, but couldn't find a generic solution, and they mostly just
 implement options to individual component, which did not look cool for
 me.
 
-\subsection{Middleware::Conditional}\label{middlewareconditional}
+\section{Middleware::Conditional}\label{middlewareconditional}
 
 The Conditional middleware is an ultimate flexible solution to this:
 
@@ -1633,7 +1633,7 @@ $app = Plack::Middleware::Conditional->wrap($app,
 But it's a little boring to write, so we added a DSL version, which I
 recommend to use :)
 
-\section{Day 19: Cascade multiple
+\chapter{Day 19: Cascade multiple
 applications}\label{day-19-cascade-multiple-applications}
 
 \href{http://advent.plackperl.org/2009/12/day-18-load-middleware-conditionally.html}{Conditional
@@ -1644,7 +1644,7 @@ PSGI application or middleware and dispatch them. This is the beauty of
 PSGI application and middleware architecture and today's application is
 another example of this.
 
-\subsection{Cascading multiple
+\section{Cascading multiple
 applications}\label{cascading-multiple-applications}
 
 Cascading can be useful if you have a couple of applications and runs in
@@ -1656,7 +1656,7 @@ such as
 \href{http://perl.apache.org/docs/2.0/user/handlers/intro.html}{mod\_perl
 handlers}.
 
-\subsection{Cascade Application}\label{cascade-application}
+\section{Cascade Application}\label{cascade-application}
 
 Plack::App::Cascade allows you to composite multiple applications in
 order and runs until it returns non-404 responses.
@@ -1689,7 +1689,7 @@ using App::File application and returns the first found files. It might
 be useful if you want to serve static files but want to cascade from
 multiple directories like this.
 
-\subsection{Cascade different apps}\label{cascade-different-apps}
+\section{Cascade different apps}\label{cascade-different-apps}
 
 \begin{lstlisting}
 use CatalystApp;
@@ -1719,7 +1719,7 @@ Well that might sound crazy and i guess it's better to use URLMap to map
 two applications in different paths, but if you \emph{really want} to
 cascade them, this is the way to go :)
 
-\section{Day 20: Access your local app from the
+\chapter{Day 20: Access your local app from the
 internet}\label{day-20-access-your-local-app-from-the-internet}
 
 (\textbf{EDIT}: the reverseHTTP service we mention here is not available
@@ -1732,7 +1732,7 @@ off your work to friends who don't have an access to your local network,
 or you're writing a web application that works as a
 \href{http://www.webhooks.org/}{webhooks} callback.
 
-\subsection{Reverse HTTP to the
+\section{Reverse HTTP to the
 rescue}\label{reverse-http-to-the-rescue}
 
 There are many solutions to this problem, but one notable solution is
@@ -1749,7 +1749,7 @@ as a long-poll HTTP client and the gateway server sends back an HTTP
 request as a response. This might sound complex but well, it's really
 simple :)
 
-\subsection{Plack::Server::ReverseHTTP}\label{plackserverreversehttp}
+\section{Plack::Server::ReverseHTTP}\label{plackserverreversehttp}
 
 \href{http://search.cpan.org/~miyagawa/Plack-Server-ReverseHTTP-0.01/}{Plack::Server::ReverseHTTP}
 is a Plack server backend that implements this ReverseHTTP protocol, so
@@ -1774,7 +1774,7 @@ else can use your label once registered. You can omit this option if you
 The console will display the address (URL) like seen, and open the URL
 from the browser and viola! You see the ``Hello'' page, right?
 
-\subsection{Use with frameworks}\label{use-with-frameworks}
+\section{Use with frameworks}\label{use-with-frameworks}
 
 Of course because this is a PSGI server backend, you can use with
 \emph{any} frameworks. Want to use it with Catalyst application?
@@ -1789,7 +1789,7 @@ Of course because this is a PSGI server backend, you can use with
 That's it! The default Catalyst application will now be accessible with
 the URL http://yourhost.reversehttp.net/ from anywhere in the world.
 
-\subsection{Notes}\label{notes}
+\section{Notes}\label{notes}
 
 ReverseHTTP.net gateway service is an experimental service and there's
 no SLA or whatever, so I don't really think it's usable for production
@@ -1798,7 +1798,7 @@ your application that needs a global access, or show off your work to
 friends that don't have an internal access. Much easier than other
 solutions that requires other software like SSH or VPN tunneling.
 
-\section{Day 21: Lint your application and
+\chapter{Day 21: Lint your application and
 middleware}\label{day-21-lint-your-application-and-middleware}
 
 We've been talking about
@@ -1806,7 +1806,7 @@ We've been talking about
 existing web frameworks to PSGI} and writing a new application using
 PSGI as an interface, but we haven't talked about error handling.
 
-\subsection{Handling errors}\label{handling-errors}
+\section{Handling errors}\label{handling-errors}
 
 We have
 \href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{an
@@ -1837,7 +1837,7 @@ the PSGI interface: the status code is not valid, HTTP headers is not an
 array ref but a hash reference and the response body is a string instead
 of an array ref.
 
-\subsection{Lint middleware}\label{lint-middleware}
+\section{Lint middleware}\label{lint-middleware}
 
 Checking them in the individual server for every request at a run time
 is \emph{possible} but not \emph{ideal}: that will be a duplicate of
@@ -1867,7 +1867,7 @@ format.
 When you develop a new framework adapter or a middleware component, be
 sure to check with Middleware::Lint during the development.
 
-\subsection{Writing a new PSGI server}\label{writing-a-new-psgi-server}
+\section{Writing a new PSGI server}\label{writing-a-new-psgi-server}
 
 Middleware::Lint validates both request and response interface, so this
 can be used when you develop a new PSGI web server as well. However if
@@ -1880,14 +1880,14 @@ requests and responses pairs to test a new PSGI server backend. Existing
 Plack::Handler backends included in Plack core distribution as well as
 other CPAN distributions all pass this test suite.
 
-\section{Day 22: Discover more
+\chapter{Day 22: Discover more
 middleware}\label{day-22-discover-more-middleware}
 
 Christmas is coming near and there aren't enough days to explore more
 middleware components. Today I'll show you a quick intro of great
 middleware components that I haven't had time to show.
 
-\subsection{ErrorDocument}\label{errordocument}
+\section{ErrorDocument}\label{errordocument}
 
 When you die out from an application or display some ``Forbidden'' error
 message when an auth wasn't successful you'll probably want to display a
@@ -1909,7 +1909,7 @@ nicer error pages.
 
 This middleware is included in the Plack core distribution.
 
-\subsection{Session}\label{session}
+\section{Session}\label{session}
 
 Actually this is (again) a steal from
 \href{http://rack.rubyforge.org/}{Rack}. Rack defines
@@ -1956,7 +1956,7 @@ Session middleware is developed by Stevan Little on
 \href{http://github.com/stevan/plack-middleware-session}{github} and is
 available on CPAN as well.
 
-\subsection{Debug}\label{debug}
+\section{Debug}\label{debug}
 
 This is a steal from \href{http://github.com/brynary/rack-bug}{Rack-bug}
 and \href{http://github.com/robhudson/django-debug-toolbar}{django debug
@@ -1983,7 +1983,7 @@ More extensions for the panels, such as DBI query profiler or Catalyst
 log dumper are being developed on
 \href{http://github.com/miyagawa/plack-middleware-debug/}{github}.
 
-\subsection{Proxy}\label{proxy}
+\section{Proxy}\label{proxy}
 
 It's often useful to proxy HTTP requests to another application, either
 running on the internet or inside the same network. The former would be
@@ -2010,7 +2010,7 @@ builder {
 Proxy middleware is developed by Lee Aylward on
 \href{http://github.com/leedo/Plack-App-Proxy}{github}.
 
-\subsection{More}\label{more}
+\section{More}\label{more}
 
 There are more middleware components available in the Plack
 distribution, and on
@@ -2018,13 +2018,13 @@ distribution, and on
 Not all middleware components are supposed to be great, but certainly
 they can be shared and used by most frameworks that support PSGI.
 
-\section{Day 23: Write your own
+\chapter{Day 23: Write your own
 middleware}\label{day-23-write-your-own-middleware}
 
 Let's finish up this middleware discovery with ``Do It Yourself''
 tutorial now.
 
-\subsection{Writing Middleware}\label{writing-middleware}
+\section{Writing Middleware}\label{writing-middleware}
 
 PSGI middleware behaves like a normal PSGI application but wraps the
 original PSGI application, so from the server it looks like an
@@ -2064,7 +2064,7 @@ Gecko) Version/4.0.4 Safari/531.21.10 (Mobile Safari)"
 You can see " (Mobile Safari)" is added to the tail of User-Agent
 string.
 
-\subsection{Make it a reusable
+\section{Make it a reusable
 Middleware}\label{make-it-a-reusable-middleware}
 
 So that was a good example of writing your own middleware in
@@ -2109,7 +2109,7 @@ Explorer, and you can also use \lstinline!enable_if! to
 \href{http://advent.plackperl.org/2009/12/day-18-load-middleware-conditionally.html}{conditionally
 enable} this middleware.
 
-\subsection{Post process requests}\label{post-process-requests}
+\section{Post process requests}\label{post-process-requests}
 
 The previous examples does pre-processing of PSGI request
 \lstinline!$env! hash, what to do about the response? It's almost the
@@ -2159,7 +2159,7 @@ Pass the response \lstinline!$res! to \lstinline!response_cb! and set
 the callback to wrap the real response, and the method takes care of the
 direct response and delayed response.
 
-\subsection{Namespaces}\label{namespaces}
+\section{Namespaces}\label{namespaces}
 
 In this example we use Plack::Middleware namespace to make middleware,
 but it doesn't really have to be. If you think your middleware is
@@ -2188,12 +2188,12 @@ $app = MyFramework::Middleware::Foo->wrap($app, ...);
 
 and they should work just fine.
 
-\section{Day 24: Wrap up}\label{day-24-wrap-up}
+\chapter{Day 24: Wrap up}\label{day-24-wrap-up}
 
 24 days have passed so fast and this is the last entry for this Plack
 advent calendar.
 
-\subsection{Best Practices}\label{best-practices}
+\section{Best Practices}\label{best-practices}
 
 Plack and PSGI are still really young projects but we've already
 discovered a couple of suggestions and advices to write a new PSGI
@@ -2221,7 +2221,7 @@ examples. If you write a blog application using Plack, \textbf{Never}
 call it Plack::App::Blog, okay? Name your software by what it does, not
 how it's written.
 
-\subsection{Explore more stuff}\label{explore-more-stuff}
+\section{Explore more stuff}\label{explore-more-stuff}
 
 Most of the Plack gangs use \href{http://github.com/}{github} for the
 source control and
@@ -2235,7 +2235,7 @@ keep track of good blog posts and stuff on delicious, so you can see
 them tagged with \href{http://delicious.com/miyagawa/psgi}{psgi} or
 \href{http://delicious.com/miyagawa/plack}{Plack}.
 
-\subsection{Getting in touch with the dev
+\section{Getting in touch with the dev
 team}\label{getting-in-touch-with-the-dev-team}
 
 Again, Plack is a fairly young project. It's just been 3 months since we
@@ -2250,7 +2250,7 @@ We're chatting on IRC channel \#plack on irc.perl.org and there's a
 \href{http://github.com/plack/Plack/issues}{an issue tracker on github}
 to communicate with us.
 
-\subsection{On a final note\ldots{}}\label{on-a-final-note}
+\section{On a final note\ldots{}}\label{on-a-final-note}
 
 It's been an interesting experiment of writing 24 articles for 24 days,
 and I'm glad that I finished this myself. Next year, i'm looking forward
