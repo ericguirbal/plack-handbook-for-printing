@@ -1,0 +1,2260 @@
+\section{Introduction}\label{introduction}
+
+This little handbook is based on the content of the
+\href{http://advent.plackperl.org/}{Plack Advent Calendar} website. The
+calendar had 24 useful short posts explaining the concept of PSGI and
+how to adapt existing web applications to Plack.
+
+The calendar was so successful it's been considered a canonical
+reference for many beginners trying to learn Plack and for web framework
+authors trying to adapt their code to work with PSGI.
+
+But the content was written 3 years ago and some of it is a little
+dated. In this book I tried to get it correct and up-to-date, and it
+will continue to be updated as we find errata and get feedback from the
+reader community.
+
+Raw source code of the book, in Markdown format, is available on
+\href{https://github.com/miyagawa/plack-handbook}{GitHub repository}
+under the Creative Commons license. See the LICENSE file for details.
+
+2012 September, Tatsuhiko Miyagawa
+
+\section{Day 1: Getting Plack}\label{day-1-getting-plack}
+
+The most important step to get started is to install
+\href{http://search.cpan.org/dist/Plack}{Plack} and other utilities.
+Because PSGI and Plack are just normal Perl module distributions the
+installation is easy: just launch your CPAN shell and type:
+
+\begin{lstlisting}
+cpan> install PSGI Plack
+\end{lstlisting}
+
+\href{http://search.cpan.org/dist/PSGI}{PSGI} is a specification
+document for the PSGI interface. By installing the distribution you can
+read the documents in your shell with the \lstinline!perldoc PSGI! or
+\lstinline!perldoc PSGI::FAQ! commands. Plack gives you the standard
+server implementations, core middleware components, and utilities like
+plackup and Plack::Test.
+
+Plack doesn't depend on any non-core XS modules so with any Perl
+distribution later than 5.8.1 (which was released more than 6 years
+ago!) it can be installed very easily, even on platforms like Win32 or
+Mac OS X without developer tools (i.e.~C compilers).
+
+If you're a developer of web applications or frameworks (I suppose you
+are!), it's highly recommended you install the optional module bundle
+\href{http://search.cpan.org/dist/Task-Plack}{Task::Plack} as well. The
+installation is as easy as typing:
+
+\begin{lstlisting}
+cpan> install Task::Plack
+\end{lstlisting}
+
+You will be prompted with a couple of questions depending on your
+environment. If you're unsure whether you should or should not install,
+just type return to select the default. You'll get optional XS speedups
+by default, while other options like non-blocking environments are
+disabled by default.
+
+Start reading the documentation with \lstinline!perldoc Plack! to get
+prepared.
+
+\section{Day 2: Hello World}\label{day-2-hello-world}
+
+The first program you write in any programming language is the one that
+prints ``Hello World''. Let's follow that tradition for PSGI as well.
+
+\textbf{Note:} Today's code is written to a raw PSGI interface to help
+you understand what's going on. In reality you should never have to do
+this unless you're a web application framework developer. Instead you
+should use one of the \href{http://plackperl.org/\#frameworks}{existing
+frameworks that supports PSGI}.
+
+\subsection{Hello, World}\label{hello-world}
+
+Here's the minimal code that prints ``Hello World'' to the client:
+
+\begin{lstlisting}
+my $app = sub {
+    return [ 200, [ 'Content-Type' => 'text/plain' ], [ 'Hello World' ] ];
+};
+\end{lstlisting}
+
+A PSGI application is a Perl subroutine reference (a coderef) and is
+usually referenced as \lstinline!$app! (it could be named anything
+obviously). It takes exactly one argument \lstinline!$env! (which is not
+used in this code) and returns an array ref containing status, headers,
+and body. That's it.
+
+Save this code in a file named \lstinline!hello.psgi! and then use the
+plackup command to run it:
+
+\begin{lstlisting}
+> plackup hello.psgi
+HTTP::Server::PSGI: Accepting connections at http://0:5000/
+\end{lstlisting}
+
+plackup runs your application with the default HTTP server
+HTTP::Server::PSGI on localhost port 5000. Open the URL
+http://127.0.0.1:5000/ and you should see the ``Hello World'' page.
+
+\subsection{Give me something
+different}\label{give-me-something-different}
+
+Hello World is the simplest code imaginable. We can do more here. Let's
+read and display the client information using the PSGI environment hash.
+
+\begin{lstlisting}
+my $app = sub {
+    my $env = shift;
+    return [
+        200,
+        ['Content-Type' => 'text/plain'],
+        [ "Hello stranger from $env->{REMOTE_ADDR}!"],
+    ];
+};
+\end{lstlisting}
+
+This code will display the remote address using the PSGI environment
+hash. It will normally be 127.0.0.1 if you're running the server on your
+localhost. The PSGI environment hash contains lots of information about
+an HTTP connection like incoming HTTP headers and request paths, much
+like the CGI environment variables.
+
+Want to display something that isn't just text? We can do this by
+reading a file:
+
+\begin{lstlisting}
+my $app = sub {
+    my $env = shift;
+    if ($env->{PATH_INFO} eq '/favicon.ico') {
+        open my $fh, "<:raw", "/path/to/favicon.ico" or die $!;
+        return [ 200, ['Content-Type' => 'image/x-icon'], $fh ];
+    } elsif ($env->{PATH_INFO} eq '/') {
+        return [ 200, ['Content-Type' => 'text/plain'], [ "Hello again" ] ];
+    } else {
+        return [ 404, ['Content-Type' => 'text/html'], [ '404 Not Found' ] ];
+    }
+};
+\end{lstlisting}
+
+This app would serve favicon.ico if the request path looks like
+/favicon.ico, the ``Hello World'' page for requests to the root (/) and
+otherwise a 404. You can see that a Perl filehandle (\lstinline!$fh!) is
+a valid PSGI response, and you can use any valid HTTP status code for a
+response.
+
+\section{Day 3: Using plackup}\label{day-3-using-plackup}
+
+In the
+\href{http://advent.plackperl.org/2009/12/day-2-hello-world.html}{Day 2}
+article I used the plackup command to run the Hello World PSGI
+application.
+
+plackup is a command line launcher of PSGI applications inspired by
+Rack's rackup command. It can be used to run any PSGI application saved
+in a .psgi file with one of the PSGI web server backends using Plack
+handlers. The usage is simple: just pass a .psgi file path to the
+command:
+
+\begin{lstlisting}
+> plackup hello.psgi
+HTTP::Server::PSGI: Accepting connections at http://0:5000/
+\end{lstlisting}
+
+You can actually omit the filename if you're trying to run the file
+named \lstinline!app.psgi! in the current directory.
+
+The default backend is chosen using one of the following methods:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  If the environment variable \lstinline!PLACK_SERVER! is set it is
+  used.
+\item
+  If some environment specific variable like
+  \lstinline!GATEWAY_INTERFACE! or \lstinline!FCGI_ROLE! is set the
+  backend for CGI or FCGI is used accordingly.
+\item
+  If the loaded \lstinline!.psgi! file uses a specific event module like
+  AnyEvent, Coro or POE the equivalent and most appropriate backend is
+  chosen automatically.
+\item
+  Otherwise, fallback to the default ``Standalone'' backend implemented
+  in the HTTP::Server::PSGI module.
+\end{itemize}
+
+You can also specify the backend yourself from the command line using
+the \lstinline!-s! or \lstinline!--server! switch:
+
+\begin{lstlisting}
+> plackup -s Starman hello.psgi
+\end{lstlisting}
+
+By default the plackup command enables three middleware components to
+aid development: Lint, AccessLog, and StackTrace. You can disable them
+with the \lstinline!-E! (or \lstinline!--environment!) switch:
+
+\begin{lstlisting}
+> plackup -E production -s Starman hello.psgi
+\end{lstlisting}
+
+In the case that you really want to use the \lstinline!development!
+Plack environment but want to disable the default middleware there is
+the \lstinline!--no-default-middleware! option.
+
+Other command line switches can be passed to the server. You can specify
+the server listen port with:
+
+\begin{lstlisting}
+> plackup -s Starlet --host 127.0.0.1 --port 8080 hello.psgi
+Plack::Handler::Starlet: Accepting connections at http://127.0.0.1:8080/
+\end{lstlisting}
+
+or specify the unix domain socket the FCGI backend should listen on
+with:
+
+\begin{lstlisting}
+> plackup -s FCGI --listen /tmp/fcgi.sock app.psgi
+\end{lstlisting}
+
+For more options for plackup, run \lstinline!perldoc plackup! from the
+command line. You'll see more plackup options and hacks tomorrow as
+well.
+
+\section{Day 4: Reloading
+applications}\label{day-4-reloading-applications}
+
+\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{Yesterday}
+I introduced the basics of plackup and its command line options. Today
+I'll show you more!
+
+\subsection{Reload the application as
+necessary}\label{reload-the-application-as-necessary}
+
+During development you often change your Perl code, saved in
+\lstinline!.psgi! or \lstinline!.pm! files. Because the Plack server
+launched by the plackup command is a persistent process you need to
+restart your server whenever your code changes. This is a little
+painful.
+
+So there's an option to watch for changes to files under your working
+directory and reload the application as needed: \lstinline!-r! (or
+\lstinline!--reload!).
+
+\begin{lstlisting}
+plackup -r hello.psgi
+\end{lstlisting}
+
+It will watch files under the current directory by default, but you can
+change it to watch additional locations by using the \lstinline!-R!
+option (note the uppercase).
+
+\begin{lstlisting}
+plackup -R lib,/path/to/scripts hello.psgi
+\end{lstlisting}
+
+As you can see, multiple paths can be monitored by combining them with
+\lstinline!,! (comma).
+
+By default plackup uses a dumb timer to scan the whole directory, but if
+you're on Linux and have Linux::Inotify2 installed or on Mac OS and have
+Mac::FSEvents installed filesystem notification is used so it's more
+efficient.
+
+\subsection{-r vs Server
+auto-detection}\label{r-vs-server-auto-detection}
+
+In Day 3 I told you that plackup's automatic server detection is smart
+enough to tell if PSGI application uses an event modules such as
+AnyEvent or Coro and choose the correct backend. Be aware that this
+automatic selection doesn't work if you use the \lstinline!-r! option
+because plackup uses a delayed loading technique to reload apps in
+forked processes. It's recommended that you explicitly set the server
+with the \lstinline!-s! option when using the \lstinline!-r! option.
+
+\subsection{Reloading sucks? Shotgun!}\label{reloading-sucks-shotgun}
+
+Reloading a module or application in a persistent Perl process can cause
+problems. For instance, module package variables could be redefined or
+overwritten and then get stuck in a bad state.
+
+Plack now has the Shotgun loader, inspired by
+\href{http://github.com/rtomayko/shotgun}{Rack's shotgun}, which solves
+the reloading problem by loading the app on \emph{every request} in a
+forked child environment.
+
+Using the Shotgun loader is easy:
+
+\begin{lstlisting}
+> plackup -L Shotgun myapp.psgi
+\end{lstlisting}
+
+This will delay the compilation of your application to runtime. When a
+request is received it will fork off a new child process to compile your
+app and return the PSGI response over the pipe. You can also preload
+modules in the parent process that are not likely to be updated to
+reduce the time needed to compile your application.
+
+For instance, if your application uses Moose and DBIx::Class then use
+the following options:
+
+\begin{lstlisting}
+> plackup -MMoose -MDBIx::Class -L Shotgun myapp.psgi
+\end{lstlisting}
+
+This speeds up the time required to compile your application in the
+runtime.
+
+\section{Day 5: Run a static web server with
+Plack}\label{day-5-run-a-static-web-server-with-plack}
+
+The Plack distribution comes with some ready made PSGI applications in
+the Plack::App namespace. Some of them are pretty handy, for instance
+\href{http://search.cpan.org/perldoc?Plack::App::File}{Plack::App::File}
+and
+\href{http://search.cpan.org/perldoc?Plack::App::Directory}{Plack::App::Directory}.
+
+Plack::App::File translates a request path like
+\lstinline!/foo/bar.html! into a local file like
+\lstinline!/path/to/htdocs/foo/bar.html!, opens the file handle, and
+passes it back as a PSGI response. It basically does what a static web
+server like lighttpd, nginx or Apache does.
+
+Plack::App::Directory is a wrapper around Plack::App::File that gives a
+directory index, just like
+\href{http://httpd.apache.org/docs/2.0/mod/mod_autoindex.html}{Apache's
+mod\_autoindex} does.
+
+Using these applications is easy. Just write a .psgi file like this:
+
+\begin{lstlisting}
+use Plack::App::File;
+my $app = Plack::App::File->new(root => "$ENV{HOME}/public_html");
+\end{lstlisting}
+
+and run it with plackup:
+
+\begin{lstlisting}
+> plackup file.psgi
+\end{lstlisting}
+
+Now you can access any file under your \lstinline!~/public_html! with
+the URL http://localhost:5000/somefile.html
+
+You can also use Plack::App::Directory. This time let's run it with just
+the plackup command without a .psgi file:
+
+\begin{lstlisting}
+> plackup -MPlack::App::Directory \
+ -e 'Plack::App::Directory->new(root => "$ENV{HOME}/Sites");
+HTTP::Server::PSGI: Accepting connections at http://0:5000/
+\end{lstlisting}
+
+The plackup command, like the perl command, accepts flags like
+\lstinline!-I! (include path), \lstinline!-M! (modules to load), and
+\lstinline!-e! (the code to eval), so it's easy to load these
+Plack::App::* applications without ever touching a .psgi file!
+
+There are a couple of other Plack::App applications in the Plack
+distribution.
+
+\section{Day 6: Convert CGI apps to
+PSGI}\label{day-6-convert-cgi-apps-to-psgi}
+
+The most popular web server environments to run web applications for
+Perl have been CGI, FastCGI, and mod\_perl. CGI.pm is one of the Perl
+core modules that happens to run fine in any of these environments (with
+some tweaks). This means many web applications and frameworks use CGI.pm
+to deal with environment differences because it's the easiest.
+
+\href{http://search.cpan.org/perldoc?CGI::PSGI}{CGI::PSGI} is a CGI
+module subclass that makes it easy to migrate existing CGI.pm based
+applications to PSGI. Imagine you have the following CGI application:
+
+\begin{lstlisting}
+use CGI;
+
+my $q = CGI->new;
+print $q->header('text/plain'),
+    "Hello ", $q->param('name');
+\end{lstlisting}
+
+This is a very simple CGI application and converting this to PSGI is
+easy using the CGI::PSGI module:
+
+\begin{lstlisting}
+use CGI::PSGI;
+
+my $app = sub {
+    my $env = shift;
+    my $q = CGI::PSGI->new($env);
+    return [
+        $q->psgi_header('text/plain'),
+        [ "Hello ", $q->param('name') ],
+    ];
+};
+\end{lstlisting}
+
+\lstinline!CGI::PSGI->new($env)! takes the PSGI environment hash and
+creates an instance of CGI::PSGI, which is a subclass of CGI.pm. All
+methods including \lstinline!param()!, \lstinline!query_string!, etc. do
+the right thing to get the values from the PSGI environment rather than
+CGI's ENV values.
+
+\lstinline!psgi_header! is a utility method that works just like CGI's
+\lstinline!header! method and returns the status code and an array
+reference containing the list of HTTP headers.
+
+Tomorrow I'll talk about how to convert existing web frameworks that use
+CGI.pm to PSGI using CGI::PSGI.
+
+\section{Day 7: Use web application framework in
+PSGI}\label{day-7-use-web-application-framework-in-psgi}
+
+Since we started the Plack and PSGI project in September 2009 there has
+been a lot of feedback from the authors of popular frameworks such as
+Catalyst, Jifty, and CGI::Application.
+
+\href{http://cgi-app.org/}{CGI::Application} is one of the most
+``traditional'' CGI-based web application framework and it uses CGI.pm
+exclusively to handle web server environments just like we
+\href{http://advent.plackperl.org/2009/12/day-6-convert-cgi-apps-to-psgi.html}{discussed
+yesterday}.
+
+Mark Stosberg, the current maintainer of CGI::Application, and I have
+been collaborating on adding PSGI support to CGI::Application. We
+thought of multiple approaches including adding native PSGI support to
+CGI.pm, but we ended up implementing
+\href{http://search.cpan.org/perldoc?CGI::PSGI}{CGI::PSGI} as a CGI.pm
+wrapper and then using
+\href{http://search.cpan.org/perldoc?CGI::Application::PSGI}{CGI::Application::PSGI}
+to run existing CGI::Application code \emph{unmodified} in a PSGI
+compatible mode.
+
+All you have to do is install CGI::Application::PSGI from CPAN and write
+a .psgi file that looks like this:
+
+\begin{lstlisting}
+use CGI::Application::PSGI;
+use WebApp;
+
+my $app = sub {
+    my $env = shift;
+    my $app = WebApp->new({ QUERY => CGI::PSGI->new($env) });
+    CGI::Application::PSGI->run($app);
+};
+\end{lstlisting}
+
+Then use
+\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{plackup}
+to run the application with a standalone server or any of the other
+backends.
+
+Similarly, most web frameworks that support PSGI provide a plugin,
+engine, or adapter to make the framework run in PSGI mode. For instance,
+\href{http://www.catalystframework.org/}{Catalyst} has a
+Catalyst::Engine::* web server abstraction and
+\href{http://search.cpan.org/perldoc?Catalyst::Engine::PSGI}{Catalyst::Engine::PSGI}
+is the engine to adapt Catalyst to run on PSGI. (\textbf{EDIT}: As of
+Catalyst 5.8 released in 2011, Catalyst supports PSGI by default and
+there's no need to install a separate engine.)
+
+The point is that with support from web frameworks you often won't need
+to modify a single line of code in your application to use PSGI. And by
+switching to PSGI there are lots of benefits like being able to use the
+toolchain of plackup, Plack::Test, and middleware which we'll discuss in
+future advent entries.
+
+\section{Day 8: Adapting web frameworks to
+PSGI}\label{day-8-adapting-web-frameworks-to-psgi}
+
+The biggest benefit of PSGI for web application framework developers is
+that once you adapt your framework to run on PSGI you can forget and
+throw away everything else that you needed to deal with to, say, handle
+the differences between a bunch of FastCGI servers.
+
+Similarly, if you have a large scale web application, open source or
+proprietary, you probably have your own web application framework (or a
+base class or the like).
+
+Today's entry discusses how to convert existing web application
+frameworks to the PSGI interface.
+
+\subsection{CGI.pm based framework}\label{cgi.pm-based-framework}
+
+In Day 7 we saw how to run a CGI::Application based application in PSGI
+using CGI::Application::PSGI. CGI::Application, as the name suggests,
+uses CGI.pm, so using CGI::PSGI instead and defining a new runner class
+is the easiest way to go.
+
+\begin{lstlisting}
+package CGI::Application::PSGI;
+use strict;
+use CGI::PSGI;
+
+sub run {
+    my($class, $app) = @_;
+
+    # HACK: deprecate HTTP header generation
+    # -- CGI::Application should support some flag to turn this off cleanly
+    my $body = do {
+        no warnings 'redefine';
+        local *CGI::Application::_send_headers = sub { '' };
+        local $ENV{CGI_APP_RETURN_ONLY} = 1;
+        $app->run;
+    };
+
+    my $q    = $app->query;
+    my $type = $app->header_type;
+
+    my @headers = $q->psgi_header($app->header_props);
+    return [ @headers, [ $body ] ];
+}
+\end{lstlisting}
+
+That's quite simple, isn't it? CGI::Application's \lstinline!run()!
+method usually returns the whole output, including HTTP headers and
+content body. As you can see, the module has a gross hack to disable the
+header generation since you can use the \lstinline!psgi_header! method
+of CGI::PSGI to generate the status code and HTTP headers as an array
+ref.
+
+I've implemented PSGI adapters for
+\href{http://search.cpan.org/perldoc?HTML::Mason}{Mason} and
+\href{http://search.cpan.org/perldoc?Maypole}{Maypole} and the code
+pretty much all looked alike:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Create CGI::PSGI out of \lstinline!$env! and set that instead of the
+  default CGI.pm instance.
+\item
+  Disable HTTP header generation if needed.
+\item
+  Run the app main dispatcher.
+\item
+  Extract the HTTP headers to be sent, use \lstinline!psgi_header! to
+  generate the status and headers.
+\item
+  Extract the response body (content).
+\end{itemize}
+
+\subsection{Adapter based framework}\label{adapter-based-framework}
+
+If the framework in question already uses adapter based approaches to
+abstract server environments it should be much easier to adapt to PSGI
+by reusing most of the CGI adapter code. Here's the code to adapt
+\href{http://search.cpan.org/perldoc?Squatting}{Squatting} to PSGI.
+Squatting uses the Squatting::On::* namespace to adapt to environments
+like mod\_perl, FastCGI, or even other frameworks like Catalyst or
+HTTP::Engine. It was extremely easy to write
+\href{http://search.cpan.org/perldoc?Squatting::On::PSGI}{Squatting::On::PSGI}:
+
+\begin{lstlisting}
+package Squatting::On::PSGI;
+use strict;
+use CGI::Cookie;
+use Plack::Request;
+use Squatting::H;
+
+my %p;
+$p{init_cc} = sub {
+  my ($c, $env)  = @_;
+  my $cc       = $c->clone;
+  $cc->env     = $env;
+  $cc->cookies = $p{c}->($env->{HTTP_COOKIE} || '');
+  $cc->input   = $p{i}->($env);
+  $cc->headers = { 'Content-Type' => 'text/html' };
+  $cc->v       = { };
+  $cc->status  = 200;
+  $cc;
+};
+
+# \%input = i($env)  # Extract CGI parameters from an env object
+$p{i} = sub {
+  my $r = Plack::Request->new($_[0]);
+  my $p = $r->params;
+  +{%$p};
+};
+
+# \%cookies = $p{c}->($cookie_header)  # Parse Cookie header(s).
+$p{c} = sub {
+  +{ map { ref($_) ? $_->value : $_ } CGI::Cookie->parse($_[0]) };
+};
+
+sub psgi {
+  my ($app, $env) = @_;
+
+  $env->{PATH_INFO} ||= "/";
+  $env->{REQUEST_PATH} ||= do {
+      my $script_name = $env->{SCRIPT_NAME};
+      $script_name =~ s{/$}{};
+      $script_name . $env->{PATH_INFO};
+  };
+  $env->{REQUEST_URI} ||= do {
+    ($env->{QUERY_STRING})
+      ? "$env->{REQUEST_PATH}?$env->{QUERY_STRING}"
+      : $env->{REQUEST_PATH};
+  };
+
+  my $res;
+  eval {
+      no strict 'refs';
+      my ($c, $args) = &{ $app . "::D" }($env->{REQUEST_PATH});
+      my $cc = $p{init_cc}->($c, $env);
+      my $content = $app->service($cc, @$args);
+
+      $res = [
+          $cc->status,
+          [ %{ $cc->{headers} } ],
+          [ $content ],
+      ];
+  };
+
+  if ($@) {
+      $res = [ 500, [ 'Content-Type' => 'text/plain' ], [ "<pre>$@</pre>" ] ];
+  }
+
+  return $res;
+}
+\end{lstlisting}
+
+That's very straightforward, especially when compared with
+\href{http://cpansearch.perl.org/src/BEPPU/Squatting-0.70/lib/Squatting/On/CGI.pm}{Squatting::On::CGI}.
+It's almost a line-by-line copy (with some adjustment) using
+Plack::Request to parse parameters instead of CGI.pm.
+
+Similarly, Catalyst uses the Catalyst::Engine abstraction and
+\href{http://search.cpan.org/perldoc?Catalyst::Engine::PSGI}{Catalyst::Engine::PSGI}
+is the adapter to run Catalyst on PSGI, where most of the code is copied
+from CGI.
+
+\subsection{mod\_perl centric
+frameworks}\label{modux5fperl-centric-frameworks}
+
+Some frameworks are centered around mod\_perl's API, in which case we
+can't use the approaches we've seen here. Instead, you should probably
+start by mocking Apache::Request APIs using a fake/mock object. Patric
+Donelan, a WebGUI developer, explains his approach to make a
+mod\_perl-like API in
+\href{http://blog.patspam.com/2009/plack-roundup-at-sf-pm}{his blog
+post}. The
+\href{http://github.com/pdonelan/webgui/blob/plebgui/lib/WebGUI/Session/Plack.pm}{mock
+request class linked} is a good place to start.
+
+\section{Day 9: Running CGI scripts on
+Plack}\label{day-9-running-cgi-scripts-on-plack}
+
+For the last couple of days we've been talking about how to convert
+existing CGI based applications to PSGI, and then run them as a PSGI
+application. Today we will show you the ultimate way to run \emph{any}
+CGI scripts as a PSGI application, most of the time unmodified.
+
+\href{http://search.cpan.org/perldoc?CGI::PSGI}{CGI::PSGI} is a subclass
+of CGI.pm to allow you a very easy migration from CGI.pm with only
+\emph{a few lines of code changes} to run it on PSGI environment. But
+what about a messy or legacy CGI script that just prints to STDOUT a lot
+and is not easy to fix?
+
+\href{http://search.cpan.org/perldoc?CGI::Emulate::PSGI}{CGI::Emulate::PSGI}
+is a module to run any CGI based perl program in a PSGI environment.
+Whatever messy/old script that prints stuff to STDOUT or directly reads
+HTTP headers from \lstinline!%ENV! would just work because that's what
+CGI::Emulate::PSGI tries to emulate. The original POD of
+CGI::Emulate::PSGI was illustrating it like:
+
+\begin{lstlisting}
+use CGI::Emulate::PSGI;
+CGI::Emulate::PSGI->handler(sub {
+    do "/path/to/foo.cgi";
+    CGI::initialize_globals() if &CGI::initialize_globals;
+});
+\end{lstlisting}
+
+to run existing CGI application that may or may not use CGI.pm (CGI.pm
+caches lots of environment variables so it needs
+\lstinline!initialize_globals()! call to clear out the previous request
+variables).
+
+A few days ago on my flight from San Francisco to London to attend
+London Perl Workshop I was hacking on something more intelligent, that
+is to take any CGI scripts and compiles it into a subroutine. The module
+is named
+\href{http://search.cpan.org/perldoc?CGI::Compile}{CGI::Compile} and
+should be best used combined with CGI::Emulate::PSGI.
+
+\begin{lstlisting}
+my $sub = CGI::Compile->compile("/path/to/script.cgi");
+my $app = CGI::Emulate::PSGI->handler($sub);
+\end{lstlisting}
+
+There's also
+\href{http://search.cpan.org/perldoc?Plack::App::CGIBin}{Plack::App::CGIBin}
+Plack application to run existing CGI scripts written in Perl as PSGI
+applications, suppose you have bunch of CGI scripts in
+\lstinline!/path/to/cgi-bin!, you'll run the server with:
+
+\begin{lstlisting}
+> plackup -MPlack::App::CGIBin -e 'Plack::App::CGIBin->new(root => "/path/to/cgi-bin"))'
+\end{lstlisting}
+
+And that will mount the path \lstinline!/path/to/cgi-bin!, so suppose
+you have \lstinline!foo.pl! in that directory, you can access
+http://localhost:5000/foo.pl to run the CGI application as a PSGI over
+the plackup, just like the scripts running on Apache mod\_perl Registry
+mechanism.
+
+\section{Day 10: Using Plack
+middleware}\label{day-10-using-plack-middleware}
+
+\subsection{Middleware}\label{middleware}
+
+Middleware is a concept in PSGI (as always, stolen from Python's WSGI
+and Ruby's Rack) where we define components that plays the both side of
+a server and an application.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics{../images/pylons_as_onion.png}
+\caption{WSGI middleware onion}
+\end{figure}
+
+(Image courtesy of Pylons project for Python WSGI)
+
+This picture illustrates the middleware concept very well. The PSGI
+application is in the core of the Onion layers, and middleware
+components wrap the original application in return, and they preprocess
+as a request comes in (outer to inner) and then postprocess the response
+as a response goes out (inner to outer).
+
+Lots of functionalities can be added to the PSGI application by wrapping
+it with a middleware component, from HTTP authentication, capturing
+errors to logging output or wrapping JSON output with JSONP.
+
+\subsection{Plack::Middleware}\label{plackmiddleware}
+
+\href{http://search.cpan.org/perldoc?Plack::Middleware}{Plack::Middleware}
+is a base class for middleware components and it allows you to write
+middleware really simply but in a reusable fashion.
+
+Using Middleware components written with Plack::Middleware is easy, just
+wrap the original application with \lstinline!wrap! method:
+
+\begin{lstlisting}
+my $app = sub { [ 200, ... ] };
+
+use Plack::Middleware::StackTrace;
+$app = Plack::Middleware::StackTrace->wrap($app);
+\end{lstlisting}
+
+This example wraps the original application with StackTrace middleware
+(which is actually enabled
+\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{by
+default using plackup}) with the \lstinline!wrap! method. So when the
+wrapped application throws an error, the middleware component catches
+the error to
+\href{http://bulknews.typepad.com/blog/2009/10/develstacktraceashtml.html}{display
+a beautiful HTML page} using Devel::StackTrace::AsHTML.
+
+Some other middleware components take parameters, in which case you can
+pass the parameters as a hash after \lstinline!$app!, like:
+
+\begin{lstlisting}
+my $app = sub { ... };
+
+use Plack::Middleware::MethodOverride;
+$app = Plack::Middleware::MethodOverride->wrap($app, header => 'X-Method');
+\end{lstlisting}
+
+Installing multiple middleware components is tedious especially since
+you need to \lstinline!use! those modules first, and we have a quick
+solution for that using a DSL style syntax.
+
+\begin{lstlisting}
+use Plack::Builder;
+my $app = sub { ... };
+
+builder {
+    enable "StackTrace";
+    enable "MethodOverride", header => 'X-Method';
+    enable "Deflater";
+    $app;
+};
+\end{lstlisting}
+
+We'll see more about Plack::Builder tomorrow.
+
+\subsection{Middleware and Frameworks}\label{middleware-and-frameworks}
+
+The beauty of Middleware is that it can wrap \emph{any} PSGI
+application. It might not be obvious from the code examples, but the
+wrapped application can be anything, which means you can
+\href{http://advent.plackperl.org/2009/12/day-7-use-web-application-framework-in-psgi.html}{run
+your existing web application in the PSGI mode} and apply middleware
+components to it. For instance, with CGI::Application:
+
+\begin{lstlisting}
+use CGI::Application::PSGI;
+use WebApp;
+
+my $app = sub {
+    my $env = shift;
+    my $app = WebApp->new({ QUERY => CGI::PSGI->new($env) });
+    CGI::Application::PSGI->run($app);
+};
+
+use Plack::Builder;
+builder {
+    enable "Auth::Basic", authenticator => sub { $_[1] eq 'foobar' };
+    $app;
+};
+\end{lstlisting}
+
+This will enable the Basic authentication middleware to CGI::Application
+based application. You can do the same with
+\href{http://plackperl.org/\#frameworks}{any other frameworks that
+supports PSGI}.
+
+\section{Day 11: Using Plack::Builder}\label{day-11-using-plackbuilder}
+
+\href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{Yesterday}
+we saw how to enable Plack middleware components in .psgi file, using
+its \lstinline!wrap! class method. The way you \lstinline!use! the
+middleware and then wrap the \lstinline!$app! with \lstinline!wrap! is
+tedious and not intuitive, so we have a DSL (Domain Specific Language)
+to make it much easier, and that is Plack::Builder.
+
+\subsection{Using Plack::Builder}\label{using-plackbuilder}
+
+The way you use Plack::Builder is so easy. Just use the keywords
+\lstinline!builder! and \lstinline!enable!:
+
+\begin{lstlisting}
+my $app = sub { 
+    return [ 200, [], [ "Hello World" ] ];
+};
+
+use Plack::Builder;
+builder {
+    enable "JSONP";
+    enable "Auth::Basic", authenticator => sub { ... };
+    enable "Deflater";
+    $app;
+};
+\end{lstlisting}
+
+This takes the original application (\lstinline!$app!) and wraps it with
+Deflater, Auth::Basic and JSONP middleware components (inner to outer).
+So it's equivalent to:
+
+\begin{lstlisting}
+$app = Plack::Middleware::Deflater->wrap($app);
+$app = Plack::Middleware::Auth::Basic->wrap($app, authenticator => sub { });
+$app = Plack::Middleware::JSONP->wrap($app);
+\end{lstlisting}
+
+but without lots of \lstinline!use!ing the module which is anti DRY.
+
+\subsection{Outer to Inner, Top to the
+bottom}\label{outer-to-inner-top-to-the-bottom}
+
+Notice that the order of middleware wrapping is in reverse? The
+builder/enable DSL allows you to \emph{wrap} application so the line
+close to the original \lstinline!$app! is \emph{inner}, while the first
+one in the top is \emph{outer}. You can compare that with
+\href{http://pylonshq.com/docs/en/0.9.7/_images/pylons_as_onion.png}{the
+onion picture} and see that it's more obvious: something closer to the
+application is inner.
+
+\lstinline!enable! takes the middleware name without the
+Plack::Middleware:: prefix but in case you want to enable some other
+namespace, like MyFramework::PSGI::MW::Foo, you can say:
+
+\begin{lstlisting}
+enable "+MyFramework::PSGI::MW::Foo";
+\end{lstlisting}
+
+the key here is to use the plus (+) sign to indicate that it is a fully
+qualified class name.
+
+\subsection{What's happening behind}\label{whats-happening-behind}
+
+If you're curious what Plack::Builder is doing, take a look at the code
+and see what's happening. The \lstinline!builder! takes the code block
+and executes the code, and take the result (return value of the last
+statement) as an original application (\lstinline!$app!), and then
+returns the wrapped application by applying Middleware in the reverse
+order. So it is important to have \lstinline!$app! in the last line
+inside the \lstinline!builder! block, and have the \lstinline!builder!
+statement as the final statement in .psgi file as well.
+
+\subsection{Thanks, Rack}\label{thanks-rack}
+
+This idea of Plack::Builder is totally an inspiration by
+\href{http://m.onkey.org/2008/11/18/ruby-on-rack-2-rack-builder}{Rack::Builder}.
+You can see that they use the \lstinline!use! keyword but obviously we
+can's \emph{use} that in Perl :) so we chose \lstinline!enable! instead.
+You can see that they have \lstinline!map! which is to map applications
+to a different path, and we'll talk about its equivalent in Plack
+tomorrow ;)
+
+\section{Day 12: Maps multiple apps with mount and
+URLMap}\label{day-12-maps-multiple-apps-with-mount-and-urlmap}
+
+\subsection{Hello World! but anyone
+else?}\label{hello-world-but-anyone-else}
+
+Throughout the advent calendar we most of the time use the simplest web
+application using the ``Hello World'' example, like
+
+\begin{lstlisting}
+my $app = sub {
+    return [ 200, [], [ "Hello World" ] ];
+};
+\end{lstlisting}
+
+what about more complex examples, like you have multiple applications,
+each of which inherit from one of the web application frameworks, and
+use one of apache magic like mod\_alias etc.
+
+\subsection{Plack::App::URLMap}\label{plackappurlmap}
+
+Plack::App::URLMap allows you to \emph{composite} multiple PSGI
+applications into one application, to dispatch requests to multiple
+applications using the URL path, or even with virtual host based
+dispatch.
+
+\begin{lstlisting}
+my $app1 = sub {
+    return [ 200, [], [ "Hello John" ] ];
+};
+
+my $app2 = sub {
+    return [ 200, [], [ "Hello Bob" ] ];
+};
+\end{lstlisting}
+
+So you have two apps, one is to say hi to John and another to Bob, and
+say if you want to run this two application on the same server. With
+Plack::App::URLMap, you can do this.
+
+\begin{lstlisting}
+use Plack::App::URLMap;
+my $app = Plack::App::URLMap->new;
+$app->mount("/john" => $app1);
+$app->mount("/bob"  => $app2);
+\end{lstlisting}
+
+There you go. Your app now dispatches all requests beginning with
+\lstinline!/john! to \lstinline!$app1! which says ``Hello John'' and
+\lstinline!/bob! to \lstinline!$app2!, which is to say ``Hello Bob''. As
+a result, all requests to unmapped paths, like the root (``/'') gives
+you 404.
+
+The environment variables such as \lstinline!PATH_INFO! and
+\lstinline!SCRIPT_NAME! are automatically adjusted so it just works like
+when your application is mounted using Apache's mod\_alias or CGI
+scripts. Your application framework should always use
+\lstinline!PATH_INFO! to dispatch requests, and concatenate with
+\lstinline!SCRIPT_NAME! to build links.
+
+\subsection{mount in DSL}\label{mount-in-dsl}
+
+This \lstinline!mount! interface with Plack::App::URLMap is quite
+useful, so we decided to add to Plack::Builder DSL itself, which is
+again an inspiration by Rack::Builder, using the syntax
+\lstinline!mount!:
+
+\begin{lstlisting}
+use Plack::Builder;
+builder {
+    mount "/john" => $app1;
+    mount "/bob"  => builder {
+        enable "Auth::Basic", authenticator => ...;
+        $app2;
+    };
+};
+\end{lstlisting}
+
+Requests to `/john' is handled exactly the same way with the normal
+URLMap. But this example uses \lstinline!builder! for ``/bob'', so it
+enables the basic authentication to display the ``Hello Bob'' page. This
+should be syntactically equivalent to:
+
+\begin{lstlisting}
+$app = Plack::App::URLMap->new;
+$app->mount("/john", $app1);
+
+$app2 = Plack::Middleware::Auth::Basic->wrap($app2, authenticator => ...);
+$app->mount("/bob",  $app2);
+\end{lstlisting}
+
+but obviously, with less code to write and more obvious to understand
+what's going on.
+
+\subsection{Multi tenant frameworks}\label{multi-tenant-frameworks}
+
+Of course you can use this URLMap and mount API to run multiple
+framework applications on one server. Imagine you have three
+applications, ``Foo'' which is based on Catalyst, ``Bar'' which is based
+on CGI::Application and ``Baz'' which is based on Squatting. Do this:
+
+\begin{lstlisting}
+# Catalyst
+use Foo;
+my $app1 = Foo->psgi_app;
+
+# CGI::Application
+use Bar;
+use CGI::Application::PSGI;
+my $app2 = sub { 
+    my $app = Bar->new({ QUERY => CGI::PSGI->new(shift) });
+    CGI::Application::PSGI->run($app);
+};
+
+# Squatting
+use Baz 'On::PSGI';
+Baz->init;
+my $app3 = sub { Baz->psgi(shift) };
+
+builder {
+    mount "/foo" => $app1;
+    mount "/bar" => $app2;
+    mount "/baz" => $app3;
+};
+\end{lstlisting}
+
+And now you have three applications, each of which inherit from
+different web framework, running on the same server (via plackup or
+other Plack::Handler::* implementations) mapped on different paths.
+
+\section{Day 13: use Plack::Test to test your
+application}\label{day-13-use-placktest-to-test-your-application}
+
+\subsection{Testing}\label{testing}
+
+There are many ways to test web applications, either with a live server
+or using a mock request technique. Some web application frameworks allow
+you to write an unit test using one of those methods, but the way you
+write tests differ per framework of your choice.
+
+Plack::Test gives you \emph{a unified interface} to test \emph{any} web
+applications and frameworks that is compatible to PSGI using \emph{both}
+mock request and live HTTP server.
+
+\subsection{Using Plack::Test}\label{using-placktest}
+
+Using Plack::Test is pretty simple and it's of course compatible to the
+Perl's standard testing protocol
+\href{http://testanything.org/wiki/}{TAP} and
+\href{http://search.cpan.org/perldoc?Test::More}{Test::More}.
+
+\begin{lstlisting}
+use Plack::Test;
+use Test::More;
+use HTTP::Request;
+
+my $app = sub {
+    return [ 200, [ 'Content-Type', 'text/plain' ], [ "Hello" ] ];
+};
+
+test_psgi $app, sub {
+    my $cb = shift;
+    
+    my $req = HTTP::Request->new(GET => 'http://localhost/');
+    my $res = $cb->($req);
+    
+    is $res->code, 200;
+    is $res->content, "Hello";
+};
+
+done_testing;
+\end{lstlisting}
+
+Create or load PSGI application like usual (you can use
+\href{http://search.cpan.org/perldoc?Plack::Util}{Plack::Util}'s
+\lstinline!load_psgi! function if you want to load an app from a
+\lstinline!.psgi! file), and call \lstinline!test_psgi! function to test
+the application. The second argument is a callback that acts as a
+testing client.
+
+You can use the named parameters as well, like the following.
+
+\begin{lstlisting}
+test_psgi app => $app, client => sub { ... }
+\end{lstlisting}
+
+The client code takes a callback (\lstinline!$cb!), which you can pass
+an HTTP::Request object that would return HTTP::Response object, like
+normal LWP::UserAgent would do, and you can make as many requests as you
+want, and test various attributes and response details.
+
+Save that code as \lstinline!.t! file and use the tool such as
+\lstinline!prove! to run the tests.
+
+\subsection{use HTTP::Request::Common}\label{use-httprequestcommon}
+
+This is not required, but recommended to use
+\href{http://search.cpan.org/perldoc?HTTP::Request::Common}{HTTP::Request::Common}
+when you want to make an HTTP request, since it's more obvious and less
+code to write:
+
+\begin{lstlisting}
+use HTTP::Request::Common;
+
+test_psgi $app, sub {
+    my $cb = shift;
+    my $res = $cb->(GET "/");
+    # ...
+};
+\end{lstlisting}
+
+Notice that you can even omit the scheme and hostname, which would
+default to http://localhost/ anyway.
+
+\subsection{Run in a server/mock mode}\label{run-in-a-servermock-mode}
+
+By default the \lstinline!test_psgi! function's callback runs as a
+\emph{Mock HTTP} request mode, turning a HTTP::Request object into a
+PSGI env hash and then run the PSGI application, and returns the
+response as a HTTP::Response object.
+
+You can change this to live HTTP mode, by setting either a) the package
+variable \lstinline!$Plack::Test::Impl! or b) the environment variable
+\lstinline!PLACK_TEST_IMPL! to the string \lstinline!Server!.
+
+\begin{lstlisting}
+use Plack::Test;
+$Plack::Test::Impl = "Server";
+
+test_psgi ... # the same code
+\end{lstlisting}
+
+By using the environment variable, you don't really need to change the
+.t code:
+
+\begin{lstlisting}
+env PLACK_TEST_IMPL=Server prove -l t/test.t
+\end{lstlisting}
+
+This will run the PSGI application using the Standalone server backend
+and uses LWP::UserAgent to send the live HTTP request. You don't need to
+modify your testing client code, and the callback would automatically
+adjust host names and port numbers depending on the test configuration.
+
+\subsection{Test your web application framework with
+Plack::Test}\label{test-your-web-application-framework-with-placktest}
+
+Once again, the beauty of PSGI and Plack is that everything written to
+run for the PSGI interface can be used for \emph{any} web application
+frameworks that speaks PSGI. By
+\href{http://advent.plackperl.org/2009/12/day-7-use-web-application-framework-in-psgi.html}{running
+your web application framework in PSGI mode}, you can also use
+Plack::Test:
+
+\begin{lstlisting}
+use Plack::Test;
+use MyCatalystApp;
+
+my $app = MyCatalystApp->psgi_app;
+
+test_psgi $app, sub {
+    my $cb = shift;
+    # ...
+};
+done_testing;
+\end{lstlisting}
+
+You can of course do the same thing against any frameworks that supports
+PSGI.
+
+\section{Day 14: Use Plack::Request}\label{day-14-use-plackrequest}
+
+Plack is not a framework per se, but is more of a toolkit that contains
+PSGI server implementations as well as utilities like
+\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{plackup},
+\href{http://advent.plackperl.org/2009/12/day-13-use-placktest-to-test-your-application.html}{Plack::Test}
+and
+\href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{Middleware
+components}.
+
+Since Plack project is a revolution from
+\href{http://search.cpan.org/perldoc?HTTP::Engine}{HTTP::Engine}, there
+seems a demand to write a quick web application in Request/Response
+style handler API. Plack::Request gives you a nice Object Oriented API
+around PSGI environment hash and response array, just like Rack's
+Rack::Request and Response objects. It could also be used as a library
+when writing a new middleware component, and a base class for
+requests/responses when you write a new web application framework based
+on Plack.
+
+\subsection{Use Plack::Request and
+Response}\label{use-plackrequest-and-response}
+
+Plack::Request is a wrapper around PSGI environment, and the code goes
+like this:
+
+\begin{lstlisting}
+use Plack::Request;
+
+my $app = sub {
+    my $req = Plack::Request->new(shift);
+    
+    my $name = $req->param('name');
+    my $res  = $req->new_response(200);
+    $res->content_type('text/html');
+    $res->content("<html><body>Hello World</body></html>");
+    
+    return $res->finalize;
+};
+\end{lstlisting}
+
+The only thing you need to change, if you're migrating from
+HTTP::Engine, is the first line of the application to create a
+Plack::Request out of PSGI env (\lstinline!shift!) and then call
+\lstinline!finalize! to get an array reference out of Response object.
+
+Many other methods like \lstinline!path_info!, \lstinline!uri!,
+\lstinline!param!, \lstinline!redirect! etc. work like
+HTTP::Engine::Request and Response object which is very similar to
+\href{http://search.cpan.org/dist/Catalyst-Runtime}{Catalyst} 's Request
+and Response object.
+
+\subsection{Plack::Request and Plack}\label{plackrequest-and-plack}
+
+Plack::Request is available as part of Plack on CPAN. Your framework can
+use Plack::Request to handle parameters and can also make it run on
+other PSGI server implementations such as mod\_psgi.
+
+\subsection{Use Plack::Request or not?}\label{use-plackrequest-or-not}
+
+Directly using Plack::Request in the \lstinline!.psgi! code is quite
+handy to quickly write and test your code but not really recommended for
+a large scale application. It's exactly like writing a 1000 lines of
+\lstinline!.cgi! script where you could factor out the application code
+into a module (\lstinline!.pm! files). The same thing applies to
+\lstinline!.psgi! file: it's best to create an application class by
+using and possibly extending Plack::Request, and then have just a few
+lines of code in \lstinline!.psgi! file with
+\href{http://advent.plackperl.org/2009/12/day-11-using-plackbuilder.html}{Plack::Builder
+to configure middleware components}.
+
+Plack::Request is also supposed to be used from a web application
+framework to
+\href{http://advent.plackperl.org/2009/12/day-8-adapting-web-frameworks-to-psgi.html}{adapt
+to PSGI interface}.
+
+\section{Day 15: Authenticate your app with
+Middleware}\label{day-15-authenticate-your-app-with-middleware}
+
+There're lots of Plack middleware components out there, whether in Plack
+core distribution as well as separate distributions on CPAN. While I've
+been writing this Plack advent calendar lots of people have shown their
+interest and taken ideas out of my wishlist.
+
+From today we'll introduce some of the nice middleware components that
+you can use quickly to enhance any of your PSGI ready applications.
+
+\subsection{Basic authentication}\label{basic-authentication}
+
+Since Plack middleware wraps an application, the best thing it can do is
+pre-process or post-process to do things around HTTP layers. Today let's
+talk about the Basic Authentication.
+
+Adding a basic authentication can be done in multiple ways: you can do
+that in the web application framework layer if it's supported in your
+framework. In case of Catalyst it's
+\href{http://search.cpan.org/perldoc?Catalyst::Authentication::Credential::HTTP}{Catalyst::Authentication::Credential::HTTP}.
+Just like other Catalyst tools, it allows you to configure the
+authentication from simple to very complex, by using credential (how to
+authenticate: basic and/or digest) and store (how to authorize username
+and passwords).
+
+Otherwise you can do the authentication in the web server layer. For
+instance if you run your application with Apache and mod\_perl, using
+Apache's default mod\_auth module to authenticate is pretty easy and
+handy for development, while it limits the ability to share ``how to
+authenticate users'' since usually you need to write your custom module
+to do things like database backed authentication.
+
+Plack middleware allows web application frameworks to share such a
+functionality, mostly with a pretty simple Perl callback system, and
+Plack::Middleware::Auth::Basic is to do this for Basic authentication.
+And this is why most Plack standalone servers do not have an
+authentication system: it's best implemented as a middleware component.
+
+\subsection{Using
+Plack::Middleware::Auth::Basic}\label{using-plackmiddlewareauthbasic}
+
+Just like
+\href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{other
+middleware}, using Auth::Basic middleware is quite simple:
+
+\begin{lstlisting}
+use Plack::Builder;
+
+my $app = sub { ... };
+
+builder {
+    enable "Auth::Basic", authenticator => sub {
+        my($username, $password) = @_;
+        return $username eq 'admin' && $password eq 'foobar';
+    };
+    $app;
+};
+\end{lstlisting}
+
+This adds a basic authentication to your application \lstinline!$app!,
+and the user \emph{admin} can sign in with the password \emph{foobar}
+and nobody else. The successful signed-in user gets
+\lstinline!REMOTE_USER! set in PSGI \lstinline!$env! hash so it can be
+used in the applications and is logged using the standard AccessLog
+middleware.
+
+Since it's a callback based, adding another authentication system such
+as Kerberos would be pretty trivial and easy with modules such as
+Authen::Simple:
+
+\begin{lstlisting}
+use Plack::Builder;
+use Authen::Simple;
+use Authen::Simple::Kerberos;
+
+my $auth = Authen::Simple->new(
+    Authen::Simple::Kerberos->new(realm => ...),
+);
+
+builder {
+    enable "Auth::Basic", authenticator => sub {
+        $auth->authenticate(@_):
+    };
+    $app;
+};
+\end{lstlisting}
+
+The same way you can use lots of
+\href{http://search.cpan.org/search?query=authen+simple\&mode=all}{Authen::Simple
+backends} with small changes.
+
+\subsection{With URLMap}\label{with-urlmap}
+
+URLMap allows you to compound multiple apps into one app, so combined
+with Auth middleware, you can run the same application in a auth
+vs.~non-auth mode, using different paths:
+
+\begin{lstlisting}
+use Plack::Builder;
+my $app = sub {
+    my $env = shift;
+    if ($env->{REMOTE_USER}) { 
+        # Authenticated
+    } else {
+        # Unauthenticated
+    }
+};
+
+builder {
+    mount "/private" => builder {
+        enable "Auth::Basic", authenticator => ...;
+        $app;
+    };
+    mount "/public" => $app;
+};
+\end{lstlisting}
+
+This way you run the same \lstinline!$app! in ``/public'' and
+``/private'' paths, while ``/private'' requires a basic authentication
+and ``/public'' doesn't. (Inlining \lstinline!$env->{REMOTE_USER}!, or
+whatever application logic in .psgi is not really recommended -- i just
+used it to explain it in an obvious way)
+
+\section{Day 16: Adding JSONP support to your
+app}\label{day-16-adding-jsonp-support-to-your-app}
+
+Today we'll see another very simple but useful example of a middleware
+component, this time to add functionality beyond just basic HTTP
+functions.
+
+\subsection{JSONP}\label{jsonp}
+
+\href{http://ajaxian.com/archives/jsonp-json-with-padding}{JSONP}
+(JSON-Padding) is a technology to wrap JSON in a JavaScript callback
+function. This is normally useful when you want to allow your JSON-based
+content included programatically in the third party websites using HTML
+\lstinline!script! tags.
+
+\subsection{Middleware::JSONP}\label{middlewarejsonp}
+
+Assume your web application returns a JSON encoded data with the
+Content-Type \lstinline!application/json!, again with a simple inline
+PSGI application:
+
+\begin{lstlisting}
+use JSON;
+my $app = sub {
+    my $env = shift;
+    if ($env->{PATH_INFO} eq '/whatever.json') {
+        my $body = JSON::encode_json({
+            hello => 'world',
+        });
+        return [ 200, ['Content-Type', 'application/json'], [ $body ] ];
+    }
+    return [ 404, ['Content-Type', 'text/html'], ['Not Found']];
+};
+\end{lstlisting}
+
+Adding a JSONP support is easy using Middleware::JSONP:
+
+\begin{lstlisting}
+use Plack::Builder;
+builder {
+    enable "JSONP";
+    $app;
+};
+\end{lstlisting}
+
+So it's just one line! The middleware checks if the response content
+type is \lstinline!application/json! and if so, checks if there is a
+\lstinline!callback! parameter in the URL. So a request to
+``/whatever.json'' continues to return the JSON but requests to
+``/whatever.json?callback=myCallback'' would return:
+
+\begin{lstlisting}
+myCallback({"hello":"world"});
+\end{lstlisting}
+
+with the Content-Type \lstinline!text/javascript!. Content-Length is
+automatically adjusted if there's any.
+
+\subsection{Works with frameworks}\label{works-with-frameworks}
+
+Supporting JSONP in addition to JSON would be fairly trivial for most
+frameworks to do, but Middleware::JSONP should be an example of the
+things that could be done in Plack middleware layer with no complexity.
+
+And of course, this JSONP middleware should work with any existing web
+frameworks that emits JSON output. So with Catalyst:
+
+\begin{lstlisting}
+package MyApp::View::JSON;
+use base qw( Catalyst::View::JSON );
+
+package MyApp::Controller::Foo;
+sub hello : Local {
+    my($self, $c) = @_;
+    $c->stash->{message} = 'Hello World!';
+    $c->forward('MyApp::View::JSON');
+}
+\end{lstlisting}
+
+And then using Catalyst::Engine::PSGI and Plack::Builder, you can add a
+JSONP support to this controller.
+
+\begin{lstlisting}
+use MyApp;
+my $app = MyApp->psgi_app;
+
+use Plack::Builder;
+builder {
+    enable "JSONP";
+    $app;
+};
+\end{lstlisting}
+
+Accidentally this
+\href{http://search.cpan.org/perldoc?Catalyst::View::JSON}{Catalyst::View::JSON}
+is my module :) and supports JSONP callback configuration by default,
+but there is more than one way to do it!
+
+\section{Day 17: Serving static files from your
+application}\label{day-17-serving-static-files-from-your-application}
+
+On
+\href{http://advent.plackperl.org/2009/12/day-5-run-a-static-file-web-server-with-plack.html}{day
+5} we talked about serving files from the current directory using
+plackup. Now that we've learned how to
+\href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{use
+middleware} and
+\href{http://advent.plackperl.org/2009/12/day-12-maps-multiple-apps-with-mount-and-urlmap.html}{compound
+multiple applications with URLMap} it's extremely trivial to add a
+functionality you definitely need when developing an application:
+serving static files.
+
+\subsection{Serving files from a certain
+path}\label{serving-files-from-a-certain-path}
+
+Most frameworks come with this feature but with PSGI and Plack,
+frameworks don't need to implement this feature anymore. Just use the
+Static middleware.
+
+\begin{lstlisting}
+use Plack::Builder;
+
+my $app = sub { ... };
+
+builder {
+    enable "Static", path => qr!^/static!, root => './htdocs';
+    $app;
+}
+\end{lstlisting}
+
+This will intercept all requests beginning with ``/static'' and map that
+to the root directory ``htdocs''. So requests to
+``/static/images/foo.jpg'' will result in serving a file
+``./htdocs/static/images/foo.jpg''.
+
+Often you want to overlap or cofigure the directory names, so a request
+to the URL ``/static/index.css'' mapped to ``./static-files/index.css'',
+here's how to do that:
+
+\begin{lstlisting}
+builder {
+    enable "Static", path => sub { s!^/static/!! }, root => './static-files';
+    $app;
+}
+\end{lstlisting}
+
+The important thing here is to use a callback and a pattern match
+\lstinline!sub { s/// }! instead of a plain regular expression
+(\lstinline!qr!). The callback is tested against a request path and if
+it matches, the value of \lstinline!$_! is being used as a request path.
+So in this example we tested to see if the request begins with
+``/static/'' and in that case, strip off that part, and map the files
+under ``./static-files/''.
+
+As a result, ``/static/foo.jpg'' would become
+``./static-files/foo.jpg''. All requests not matching the pattern match
+just passes through to the original \lstinline!$app!.
+
+\subsection{Do it your own with URLMap and
+App::File}\label{do-it-your-own-with-urlmap-and-appfile}
+
+Just like Perl there's more than one way to do it. When you grok how to
+use
+\href{http://advent.plackperl.org/2009/12/day-12-maps-multiple-apps-with-mount-and-urlmap.html}{mount
+and URLMap} then using App::File with mount should be more intuitive.
+The previous example can be written like this:
+
+\begin{lstlisting}
+use Plack::Builder;
+
+builder {
+    mount "/static" => Plack::App::File->new(root => "./static-files");
+    mount "/" => $app;
+};
+\end{lstlisting}
+
+Your mileage may vary, but I think this one is more obvious. Static's
+callback based configuration allows you to write more complex regular
+expression, which you can't do with URLMap and mount, so choose
+whichever fits your need.
+
+\section{Day 18: Load middleware
+conditionally}\label{day-18-load-middleware-conditionally}
+
+I've introduced a couple of middleware components. Some of them are
+useful and could be enabled globally, while others might be better
+enabled on certain conditions. Today we'll talk about a solution to
+this.
+
+\subsection{Load middleware
+conditionally}\label{load-middleware-conditionally}
+
+Conditional middleware is a super (or meta) middleware that takes one
+middleware and enable that middleware based on a runtime condition.
+Let's take some examples:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  You want to enable
+  \href{http://advent.plackperl.org/2009/12/day-16-adding-jsonp-support-to-your-app.html}{JSONP
+  middleware} only if the path begins with /public
+\item
+  You don't want to enable
+  \href{http://advent.plackperl.org/2009/12/day-15-authenticate-your-app-with-middleware.html}{Basic
+  Auth} if the request comes from local IP
+\end{itemize}
+
+We investigated how they deal with situations like this in WSGI and
+Rack, but couldn't find a generic solution, and they mostly just
+implement options to individual component, which did not look cool for
+me.
+
+\subsection{Middleware::Conditional}\label{middlewareconditional}
+
+The Conditional middleware is an ultimate flexible solution to this:
+
+\begin{lstlisting}
+use Plack::Builder;
+
+builder {
+    enable_if { $_[0]->{REMOTE_ADDR} !~ /^192\.168\.0\./ }
+        "Auth::Basic", authenticator => ...;
+    $app;
+};
+\end{lstlisting}
+
+We added a new keyword to Plack::Builder \lstinline!enable_if!, which
+takes a block that gets evaluated in the request time (\lstinline!$_[0]!
+there is the \lstinline!$env! hash) and if the block returns true, run
+the wrapped application but otherwise pass through.
+
+This example code examines if the request comes from a local network and
+runs a basic authentication otherwise.
+
+Conditional is implemented as a normal piece of middleware, and
+internally this is equivalent to:
+
+\begin{lstlisting}
+use Plack::Middleware::Conditional;
+use Plack::Middleware::Auth::Basic;
+
+my $app = sub { ... };
+
+$app = Plack::Middleware::Conditional->wrap($app,
+    builder => sub {
+        Plack::Middleware::Auth::Basic->wrap(
+            $_[0], authenticator => ...,
+        );
+    },
+    condition => sub {
+        my $env = shift;
+        $env->{REMOTE_ADDR} !~ /^192\.168\.0\./;
+    },
+);
+\end{lstlisting}
+
+But it's a little boring to write, so we added a DSL version, which I
+recommend to use :)
+
+\section{Day 19: Cascade multiple
+applications}\label{day-19-cascade-multiple-applications}
+
+\href{http://advent.plackperl.org/2009/12/day-18-load-middleware-conditionally.html}{Conditional
+middleware} and
+\href{http://advent.plackperl.org/2009/12/day-12-maps-multiple-apps-with-mount-and-urlmap.html}{URLMap
+app} have something in common: they're PSGI applications but both takes
+PSGI application or middleware and dispatch them. This is the beauty of
+PSGI application and middleware architecture and today's application is
+another example of this.
+
+\subsection{Cascading multiple
+applications}\label{cascading-multiple-applications}
+
+Cascading can be useful if you have a couple of applications and runs in
+order, then try until it returns a successful response. This is
+sometimes called
+\href{http://en.wikipedia.org/wiki/Chain-of-responsibility_pattern}{Chain
+of responsibility} design pattern and often used in web applications
+such as
+\href{http://perl.apache.org/docs/2.0/user/handlers/intro.html}{mod\_perl
+handlers}.
+
+\subsection{Cascade Application}\label{cascade-application}
+
+Plack::App::Cascade allows you to composite multiple applications in
+order and runs until it returns non-404 responses.
+
+\begin{lstlisting}
+use Plack::App::Cascade;
+use Plack::App::File;
+use Plack::App::URLMap;
+
+my @paths = qw(
+    /home/www/static
+    /virtualhost/example.com/htdocs/static
+    /users/miyagawa/public_html/images
+);
+
+my $app = Plack::App::Cascade->new;
+for my $path (@paths) {
+    my $file = Plack::App::File->new(root => $path);
+    $app->add($file);
+}
+
+my $map = Plack::App::URLMap->new;
+$map->mount("/static" => $app);
+$map->to_app;
+\end{lstlisting}
+
+This application is mapped to \lstinline!/static! using URLMap, and all
+requests will try the three directories specified in \lstinline!@paths!
+using App::File application and returns the first found files. It might
+be useful if you want to serve static files but want to cascade from
+multiple directories like this.
+
+\subsection{Cascade different apps}\label{cascade-different-apps}
+
+\begin{lstlisting}
+use CatalystApp;
+CatalystApp->setup_engine('PSGI');
+my $app1 = sub { CatalystApp->run(@_) };
+
+use CGI::Application::PSGI;
+use CGIApp;
+my $app2 = sub {
+    my $app = CGIApp->new({
+        QUERY => CGI::PSGI->new($_[0]),
+    });
+    CGI::Application::PSGI->run($app);
+};
+
+use Plack::App::Cascade;
+Plack::App::Cascade->new(apps => [ $app1, $app2 ])->to_app;
+\end{lstlisting}
+
+This will create two applications, one with Catalyst and the other with
+CGI::Application and runs two applications in order. Suppose you have an
+overlapping URL structure and \lstinline!/what/ever.cat! served with the
+Catalyst application and \lstinline!/what/ever.cgiapp! served with the
+CGI::Application app.
+
+Well that might sound crazy and i guess it's better to use URLMap to map
+two applications in different paths, but if you \emph{really want} to
+cascade them, this is the way to go :)
+
+\section{Day 20: Access your local app from the
+internet}\label{day-20-access-your-local-app-from-the-internet}
+
+(\textbf{EDIT}: the reverseHTTP service we mention here is not available
+as of 2012)
+
+These days laptops with modern operation systems allows you to quickly
+develop a web application and test it locally with its local IP address.
+Often you want to test your application with a global access, to show
+off your work to friends who don't have an access to your local network,
+or you're writing a web application that works as a
+\href{http://www.webhooks.org/}{webhooks} callback.
+
+\subsection{Reverse HTTP to the
+rescue}\label{reverse-http-to-the-rescue}
+
+There are many solutions to this problem, but one notable solution is
+\href{http://www.reversehttp.net/}{ReverseHTTP}. It is a very simple
+specification of client-server-gateway protocol that uses pure HTTP/1.1
+payloads, and what's nice about it is that there's a demo gateway
+service running on reversehttp.net, so you can actually use it for demo
+or testing purpose pretty quickly without setting up servers etc.
+
+If you're curious how this really works, take a look at
+\href{http://www.reversehttp.net/specs.html}{the spec}. The reason why
+it's called \emph{Reverse} HTTP is that your application (server) acts
+as a long-poll HTTP client and the gateway server sends back an HTTP
+request as a response. This might sound complex but well, it's really
+simple :)
+
+\subsection{Plack::Server::ReverseHTTP}\label{plackserverreversehttp}
+
+\href{http://search.cpan.org/~miyagawa/Plack-Server-ReverseHTTP-0.01/}{Plack::Server::ReverseHTTP}
+is a Plack server backend that implements this ReverseHTTP protocol, so
+your PSGI based application can be accessed from the outside world via
+this reversehttp.net gateway service.
+
+To use ReverseHTTP, install the required modules and run this:
+
+\begin{lstlisting}
+> plackup -s ReverseHTTP -o yourhostname --token password \
+  -e 'sub { [200, ["Content-Type","text/plain"], ["Hello"]] }'
+Public Application URL: http://yourhostname.www.reversehttp.net/
+\end{lstlisting}
+
+\lstinline!-o! is an alias for \lstinline!--host! for plackup (because
+\lstinline!-h! is taken for \lstinline!--help! :)), and you should
+specify the subdomain (label) you're going to use. You should also
+supply \lstinline!--token! which is like a generic password so nobody
+else can use your label once registered. You can omit this option if you
+\emph{really} want anyone else to take that subdomain over.
+
+The console will display the address (URL) like seen, and open the URL
+from the browser and viola! You see the ``Hello'' page, right?
+
+\subsection{Use with frameworks}\label{use-with-frameworks}
+
+Of course because this is a PSGI server backend, you can use with
+\emph{any} frameworks. Want to use it with Catalyst application?
+
+\begin{lstlisting}
+> catalyst.pl MyApp
+> cd MyApp
+> ./scripts/myapp_create.pl PSGI
+> plackup -o yourhost --token password ./scripts/myapp.psgi
+\end{lstlisting}
+
+That's it! The default Catalyst application will now be accessible with
+the URL http://yourhost.reversehttp.net/ from anywhere in the world.
+
+\subsection{Notes}\label{notes}
+
+ReverseHTTP.net gateway service is an experimental service and there's
+no SLA or whatever, so I don't really think it's usable for production
+environment and such. But it's really handy and useful to quickly test
+your application that needs a global access, or show off your work to
+friends that don't have an internal access. Much easier than other
+solutions that requires other software like SSH or VPN tunneling.
+
+\section{Day 21: Lint your application and
+middleware}\label{day-21-lint-your-application-and-middleware}
+
+We've been talking about
+\href{http://advent.plackperl.org/2009/12/day-8-adapting-web-frameworks-to-psgi.html}{adapting
+existing web frameworks to PSGI} and writing a new application using
+PSGI as an interface, but we haven't talked about error handling.
+
+\subsection{Handling errors}\label{handling-errors}
+
+We have
+\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{an
+awesome stack trace} middleware enabled by default, so if an end user
+application throws an error, we can catch them and display a nice error
+page. But what if there is an error or a bug in one of middleware
+components, or web application framework adapters themselves?
+
+Try this code:
+
+\begin{lstlisting}
+> plackup -e 'sub { return [ 0, {"Content-Type","text/html"}, "Hello" ] }'
+\end{lstlisting}
+
+Again, writing a raw PSGI interface is not something end users would do
+every day, but this could be a good emulation of what would happen if
+there's a bug in one of middleware components or framework adapters
+itself.
+
+When you access this application with the browser, the server dies with:
+
+\begin{lstlisting}
+Not an ARRAY reference at lib/Plack/Util.pm line 145.
+\end{lstlisting}
+
+or something similar. This is because the response format is invalid per
+the PSGI interface: the status code is not valid, HTTP headers is not an
+array ref but a hash reference and the response body is a string instead
+of an array ref.
+
+\subsection{Lint middleware}\label{lint-middleware}
+
+Checking them in the individual server for every request at a run time
+is \emph{possible} but not \emph{ideal}: that will be a duplicate of
+codes, and doing so in every request is not efficient from the
+performance standpoint. We should better validate if an application,
+middleware or server backend conforms to the PSGI interface using the
+test suite during the development and disable that when running on
+production for the best performance.
+
+Middleware::Lint is the middleware to validate request and response
+interface. Run the application above with the middleware:
+
+\begin{lstlisting}
+> plackup -e 'enable "Lint"; sub { return [ 0, { "Content-Type"=>"text/html" }, ["Hello"] ] }'
+\end{lstlisting}
+
+and now requests for the application would give a nice stack trace
+saying:
+
+\begin{lstlisting}
+status code needs to be an integer greater than or equal to 100 at ...
+\end{lstlisting}
+
+since now the Lint middleware checks if the response in the valid PSGI
+format.
+
+When you develop a new framework adapter or a middleware component, be
+sure to check with Middleware::Lint during the development.
+
+\subsection{Writing a new PSGI server}\label{writing-a-new-psgi-server}
+
+Middleware::Lint validates both request and response interface, so this
+can be used when you develop a new PSGI web server as well. However if
+you are a server developer there's a more comprehensive testing tool to
+make sure your server behaves correctly, and that is Plack::Test::Suite.
+
+You can look at the existing tests in the \lstinline!t/Plack-Handler!
+directory for how to use this utility, but it defines lots of expected
+requests and responses pairs to test a new PSGI server backend. Existing
+Plack::Handler backends included in Plack core distribution as well as
+other CPAN distributions all pass this test suite.
+
+\section{Day 22: Discover more
+middleware}\label{day-22-discover-more-middleware}
+
+Christmas is coming near and there aren't enough days to explore more
+middleware components. Today I'll show you a quick intro of great
+middleware components that I haven't had time to show.
+
+\subsection{ErrorDocument}\label{errordocument}
+
+When you die out from an application or display some ``Forbidden'' error
+message when an auth wasn't successful you'll probably want to display a
+custom error page based on the response status code. ErrorDocument is
+exactly the middleware that does this, like Apache's ErrorDocument
+directive.
+
+\begin{lstlisting}
+builder {
+    enable "ErrorDocument", 500 => "/path/to/error.html";
+    $app;
+};
+\end{lstlisting}
+
+You can just map arbitrary error code to a static file path to be
+served. You can enable StackTrace middleware during the development and
+then this ErrorDocument middleware on the production so as to display
+nicer error pages.
+
+This middleware is included in the Plack core distribution.
+
+\subsection{Session}\label{session}
+
+Actually this is (again) a steal from
+\href{http://rack.rubyforge.org/}{Rack}. Rack defines
+\lstinline!rack.session! as a standard Rack environment hash and defines
+the interface as Ruby's built-in Hash object. We didn't define it as
+part of the standard interface but stole the idea and actual
+implementation a lot.
+
+\begin{lstlisting}
+ builder {
+     enable "Session", store => "File";
+     $app;
+ };
+\end{lstlisting}
+
+By default Session will save the session in on-memory hash, which
+wouldn't work with the prefork (or multi process) servers. It's shipped
+with a couple of default store engines such as
+\href{http://search.cpan.org/perldoc?CHI}{CHI}, so it's so easy to adapt
+to other storage engines, exactly like we see with other middleware
+components such as Auth.
+
+Session data is stored as a plain hash reference in
+\lstinline!psgix.session! key in the PSGI env hash. Application and
+frameworks with access to PSGI env hash can use this Session freely in
+the app by wrapping it with Plack::Session module, like in Tatsumaki:
+
+\begin{lstlisting}
+ # Tatsumaki app
+ sub get {
+     my $self = shift;
+     my $uid = $self->request->session->get('uid');
+     $self->request->session->set(last_access => time);
+     ...
+ }
+\end{lstlisting}
+
+And the nice thing is that \emph{any} PSGI apps can share this session
+data as long as they use the same storage etc. Some existing framework
+adapters don't have an access to this environment hash from end users
+application yet, so it should be updated gradually in the near future.
+
+Session middleware is developed by Stevan Little on
+\href{http://github.com/stevan/plack-middleware-session}{github} and is
+available on CPAN as well.
+
+\subsection{Debug}\label{debug}
+
+This is a steal from \href{http://github.com/brynary/rack-bug}{Rack-bug}
+and \href{http://github.com/robhudson/django-debug-toolbar}{django debug
+toolbar}. By enabling this middleware you'll see the handy debug
+``panels'' in the right side where you can click and see the detailed
+data and analysis about the request.
+
+The panels include Timer (the request time), Memory (how is memory
+increased if there's any leaks), Request (Detailed request headers) and
+Responses (Response headers etc.) and so on.
+
+\begin{lstlisting}
+ builder {
+     enable "Debug";
+     $app;
+ };
+\end{lstlisting}
+
+Using it is so easy as this, and you an also pass the list of
+\lstinline!panels! to enable only certain panels or additional non
+default panels.
+
+More extensions for the panels, such as DBI query profiler or Catalyst
+log dumper are being developed on
+\href{http://github.com/miyagawa/plack-middleware-debug/}{github}.
+
+\subsection{Proxy}\label{proxy}
+
+It's often useful to proxy HTTP requests to another application, either
+running on the internet or inside the same network. The former would be
+necessary if you want to proxy long poll or some JSON API from your
+application that doesn't support JSONP (because of Cross domain origin
+policy), and the latter would be to run applications on different
+machine and use your app as a reverse proxy, though chances are you want
+to use frontend web servers like nginx, lighttpd or perlbal to do the
+job.
+
+Anyway, Plack::App::Proxy is the middleware to do this:
+
+\begin{lstlisting}
+use Plack::App::Proxy;
+use Plack::Builder;
+
+my $app = Plack::App::Proxy->new(host => '192.168.0.2:8080')->to_app;
+
+builder {
+    mount "/app" => $app;
+};
+\end{lstlisting}
+
+Proxy middleware is developed by Lee Aylward on
+\href{http://github.com/leedo/Plack-App-Proxy}{github}.
+
+\subsection{More}\label{more}
+
+There are more middleware components available in the Plack
+distribution, and on
+\href{http://search.cpan.org/search?query=plack+middleware\&mode=dist}{CPAN}.
+Not all middleware components are supposed to be great, but certainly
+they can be shared and used by most frameworks that support PSGI.
+
+\section{Day 23: Write your own
+middleware}\label{day-23-write-your-own-middleware}
+
+Let's finish up this middleware discovery with ``Do It Yourself''
+tutorial now.
+
+\subsection{Writing Middleware}\label{writing-middleware}
+
+PSGI middleware behaves like a normal PSGI application but wraps the
+original PSGI application, so from the server it looks like an
+application but from an application it looks like a server (plays both
+sides).
+
+A simple middleware that fakes HTTP user-agent would be like this:
+
+\begin{lstlisting}
+# Wrapped application
+my $app = sub {
+    my $env = shift;
+    my $who = $env->{HTTP_USER_AGENT} =~ /Mobile Safari/ ? 'iPhone' : 'non-iPhone';
+    return [ 200, ['Content-Type','text/html'], ["Hello $who"] ];
+};
+
+# Middleware to wrap $app
+my $mw = sub {
+    my $env = shift;
+    $env->{HTTP_USER_AGENT} .= " (Mobile Safari)";
+    $app->($env);
+};
+\end{lstlisting}
+
+The app would display ``Hello iPhone'' only if a request comes with
+iPhone browser (\emph{Mobile Safari}), but the middleware adds that
+phrase to all incoming requests, so if you run this application and open
+the page with any browsers, you'll always see ``Hello iPhone''. And the
+default Access Log would say:
+
+\begin{lstlisting}
+127.0.0.1 - - [23/Dec/2009 12:34:31] "GET / HTTP/1.1" 200 12 "-" "Mozilla/5.0 
+(Macintosh; U; Intel Mac OS X 10_6_2; en-us) AppleWebKit/531.21.8 (KHTML, like
+Gecko) Version/4.0.4 Safari/531.21.10 (Mobile Safari)"
+\end{lstlisting}
+
+You can see " (Mobile Safari)" is added to the tail of User-Agent
+string.
+
+\subsection{Make it a reusable
+Middleware}\label{make-it-a-reusable-middleware}
+
+So that was a good example of writing your own middleware in
+\lstinline!.psgi!. If it is one-time middleware that you can quickly
+whip up then that's great, but you often want to make it generic enough
+or reusable in other applications too. Then you should use
+Plack::Middleware.
+
+\begin{lstlisting}
+package Plack::Middleware::FakeUserAgent;
+use strict;
+use parent qw(Plack::Middleware);
+use Plack::Util::Accessor qw(agent);
+
+sub call {
+    my($self, $env) = @_;
+    $env->{HTTP_USER_AGENT} = $self->agent;
+    $self->app->($env);
+};
+
+1;
+\end{lstlisting}
+
+That's it. All you have to do is to inherit from Plack::Middleware and
+defines options that your middleware would take, and implement
+\lstinline!call! method that would delegate to \lstinline!$self->app!
+which is a wrapped application. This middleware is now compatible to
+\href{http://advent.plackperl.org/2009/12/day-11-using-plackbuilder.html}{Plack::Builder
+DSL} so you can say:
+
+\begin{lstlisting}
+use Plack::Builder;
+
+builder {
+    enable "FakeUserAgent", agent => "Mozilla/3.0 (MSIE 4.0)";
+    $app;
+};
+\end{lstlisting}
+
+to fake all incoming requests as it comes with the good old Internet
+Explorer, and you can also use \lstinline!enable_if! to
+\href{http://advent.plackperl.org/2009/12/day-18-load-middleware-conditionally.html}{conditionally
+enable} this middleware.
+
+\subsection{Post process requests}\label{post-process-requests}
+
+The previous examples does pre-processing of PSGI request
+\lstinline!$env! hash, what to do about the response? It's almost the
+same:
+
+\begin{lstlisting}
+my $app = sub { ... };
+
+# Middleware to fake status code to 500
+my $mw = sub {
+    my $env = shift;
+    my $res = $app->($env);
+    $res->[0] = 500 unless $res->[2] == 200;
+    $res;
+};
+\end{lstlisting}
+
+This is an \emph{evil} middleware component that changes all the status
+code to 500 unless it's 200 OK. Not sure if there is any use for this
+but it's simple enough for a quick example.
+
+Because some servers implement special
+\href{http://bulknews.typepad.com/blog/2009/10/psgiplack-streaming-is-now-complete.html}{streaming
+interface} to delay HTTP response, this middleware doesn't really work
+with such an interface. Dealing with this special callback interface in
+individual middleware is not efficient, so we have a special callback
+interface in Plack::Middleware to make this easy:
+
+\begin{lstlisting}
+package Plack::Middleware::BadStatusCode;
+use strict;
+use parent qw(Plack::Middleware);
+
+sub call {
+    my($self, $env) = @_;
+    my $res = $self->app->($env);
+    $self->response_cb($res, sub {
+        my $res = shift;
+        $res->[0] = 500 unless $res->[0] == 200;
+    });
+}
+
+1;
+\end{lstlisting}
+
+Pass the response \lstinline!$res! to \lstinline!response_cb! and set
+the callback to wrap the real response, and the method takes care of the
+direct response and delayed response.
+
+\subsection{Namespaces}\label{namespaces}
+
+In this example we use Plack::Middleware namespace to make middleware,
+but it doesn't really have to be. If you think your middleware is
+generic enough for all PSGI apps can benefit, feel free to use the
+namespace, but if the middleware is too specific for your own needs, or
+works only with a particular application framework, then use whatever
+namespace, like:
+
+\begin{lstlisting}
+package MyFramework::Middleware::Foo;
+use parent qw(Plack::Middleware);
+\end{lstlisting}
+
+and then use the + (plus) sign to indicate the fully qualified
+namespace,
+
+\begin{lstlisting}
+enable '+MyFramework::Middleware::Foo', ...;
+\end{lstlisting}
+
+Or use the non-DSL API,
+
+\begin{lstlisting}
+$app = MyFramework::Middleware::Foo->wrap($app, ...);
+\end{lstlisting}
+
+and they should work just fine.
+
+\section{Day 24: Wrap up}\label{day-24-wrap-up}
+
+24 days have passed so fast and this is the last entry for this Plack
+advent calendar.
+
+\subsection{Best Practices}\label{best-practices}
+
+Plack and PSGI are still really young projects but we've already
+discovered a couple of suggestions and advices to write a new PSGI
+application or a framework.
+
+When you write a new framework, be sure to have an access to the PSGI
+environment hash from end users applications or plugin developers,
+either directly or with an accessor method. This allows your framework
+to share and extend functionality with middleware components like Debug
+or Session.
+
+Do not write your application logic in \lstinline!.psgi! files using
+Plack::Request. It's like writing a 1000 lines of CGI script using
+CGI.pm, so if you think that's your favorite i won't give you any
+further advice, but usually you want to make your application
+\href{http://advent.plackperl.org/2009/12/day-13-use-placktest-to-test-your-application.html}{testable}
+and reusable by making it a class or an object. Then your
+\lstinline!.psgi! code is just a few lines of code to create a PSGI
+application out of it and apply some middleware components.
+
+Think twice before using Plack::App::* namespace. Plack::App namespace
+is for middleware components that do not act as a \emph{wrapper} but
+rather an \emph{endpoint}. Proxy, File, Cascade and URLMap are the good
+examples. If you write a blog application using Plack, \textbf{Never}
+call it Plack::App::Blog, okay? Name your software by what it does, not
+how it's written.
+
+\subsection{Explore more stuff}\label{explore-more-stuff}
+
+Most of the Plack gangs use \href{http://github.com/}{github} for the
+source control and
+\href{http://github.com/search?langOverride=\&q=plack\&repo=\&start_value=1\&type=Repositories}{searching
+for repositories with ``Plack''} would give you a fresh look of what
+would look like an interesting idea. You can also search for modules on
+CPAN with
+\href{http://search.cpan.org/search?query=plack\&mode=module}{Plack} or
+\href{http://search.cpan.org/search?query=psgi\&mode=module}{PSGI}. I
+keep track of good blog posts and stuff on delicious, so you can see
+them tagged with \href{http://delicious.com/miyagawa/psgi}{psgi} or
+\href{http://delicious.com/miyagawa/plack}{Plack}.
+
+\subsection{Getting in touch with the dev
+team}\label{getting-in-touch-with-the-dev-team}
+
+Again, Plack is a fairly young project. It's just been 3 months since we
+gave this project a birth. There are many things that could get more
+improvements, so if you come across one of them, don't stop there. Let
+us know what you think is a problem, give us an insight how it could be
+improved, or if you're impatient, fork the project on github and send us
+patches.
+
+We're chatting on IRC channel \#plack on irc.perl.org and there's a
+\href{http://groups.google.com/group/psgi-plack}{mailing list} and
+\href{http://github.com/plack/Plack/issues}{an issue tracker on github}
+to communicate with us.
+
+\subsection{On a final note\ldots{}}\label{on-a-final-note}
+
+It's been an interesting experiment of writing 24 articles for 24 days,
+and I'm glad that I finished this myself. Next year, i'm looking forward
+to having your own advent entries to make the community based advent
+calendar.
+
+I wish you a Very Merry Christmas and a Happy New Year.
