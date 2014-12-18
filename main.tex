@@ -71,6 +71,14 @@
 \renewcommand{\thesection}{\arabic{section}}
 \graphicspath{{images/}}
 
+% Create a footnote for each href link
+\let\oldhref\href
+\renewcommand{\href}[2]{%
+  \oldhref{#1}{#2}%
+  \footnote{\url{#1}}%
+}
+\renewcommand\UrlFont{\rmfamily\itshape}
+
 \begin{document}
 
 \title{Plack Handbook}
