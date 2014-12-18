@@ -5,9 +5,9 @@ The most important step to get started is to install
 Because PSGI and Plack are just normal Perl module distributions the
 installation is easy: just launch your CPAN shell and type:
 
-\begin{lstlisting}
+\begin{shell}
 cpan> install PSGI Plack
-\end{lstlisting}
+\end{shell}
 
 \href{http://search.cpan.org/dist/PSGI}{PSGI} is a specification
 document for the PSGI interface. By installing the distribution you can
@@ -26,9 +26,9 @@ are!), it's highly recommended you install the optional module bundle
 \href{http://search.cpan.org/dist/Task-Plack}{Task::Plack} as well. The
 installation is as easy as typing:
 
-\begin{lstlisting}
+\begin{shell}
 cpan> install Task::Plack
-\end{lstlisting}
+\end{shell}
 
 You will be prompted with a couple of questions depending on your
 environment. If you're unsure whether you should or should not install,
@@ -69,10 +69,10 @@ and body. That's it.
 Save this code in a file named \lstinline!hello.psgi! and then use the
 plackup command to run it:
 
-\begin{lstlisting}
-> plackup hello.psgi
+\begin{shell}
+$ plackup hello.psgi
 HTTP::Server::PSGI: Accepting connections at http://0:5000/
-\end{lstlisting}
+\end{shell}
 
 plackup runs your application with the default HTTP server
 HTTP::Server::PSGI on localhost port 5000. Open the URL
@@ -137,10 +137,10 @@ in a .psgi file with one of the PSGI web server backends using Plack
 handlers. The usage is simple: just pass a .psgi file path to the
 command:
 
-\begin{lstlisting}
-> plackup hello.psgi
+\begin{shell}
+$ plackup hello.psgi
 HTTP::Server::PSGI: Accepting connections at http://0:5000/
-\end{lstlisting}
+\end{shell}
 
 You can actually omit the filename if you're trying to run the file
 named \lstinline!app.psgi! in the current directory.
@@ -168,17 +168,17 @@ The default backend is chosen using one of the following methods:
 You can also specify the backend yourself from the command line using
 the \lstinline!-s! or \lstinline!--server! switch:
 
-\begin{lstlisting}
-> plackup -s Starman hello.psgi
-\end{lstlisting}
+\begin{shell}
+$ plackup -s Starman hello.psgi
+\end{shell}
 
 By default the plackup command enables three middleware components to
 aid development: Lint, AccessLog, and StackTrace. You can disable them
 with the \lstinline!-E! (or \lstinline!--environment!) switch:
 
-\begin{lstlisting}
-> plackup -E production -s Starman hello.psgi
-\end{lstlisting}
+\begin{shell}
+$ plackup -E production -s Starman hello.psgi
+\end{shell}
 
 In the case that you really want to use the \lstinline!development!
 Plack environment but want to disable the default middleware there is
@@ -187,17 +187,17 @@ the \lstinline!--no-default-middleware! option.
 Other command line switches can be passed to the server. You can specify
 the server listen port with:
 
-\begin{lstlisting}
-> plackup -s Starlet --host 127.0.0.1 --port 8080 hello.psgi
+\begin{shell}
+$ plackup -s Starlet --host 127.0.0.1 --port 8080 hello.psgi
 Plack::Handler::Starlet: Accepting connections at http://127.0.0.1:8080/
-\end{lstlisting}
+\end{shell}
 
 or specify the unix domain socket the FCGI backend should listen on
 with:
 
-\begin{lstlisting}
-> plackup -s FCGI --listen /tmp/fcgi.sock app.psgi
-\end{lstlisting}
+\begin{shell}
+$ plackup -s FCGI --listen /tmp/fcgi.sock app.psgi
+\end{shell}
 
 For more options for plackup, run \lstinline!perldoc plackup! from the
 command line. You'll see more plackup options and hacks tomorrow as
@@ -223,17 +223,17 @@ So there's an option to watch for changes to files under your working
 directory and reload the application as needed: \lstinline!-r! (or
 \lstinline!--reload!).
 
-\begin{lstlisting}
-plackup -r hello.psgi
-\end{lstlisting}
+\begin{shell}
+$ plackup -r hello.psgi
+\end{shell}
 
 It will watch files under the current directory by default, but you can
 change it to watch additional locations by using the \lstinline!-R!
 option (note the uppercase).
 
-\begin{lstlisting}
-plackup -R lib,/path/to/scripts hello.psgi
-\end{lstlisting}
+\begin{shell}
+$ plackup -R lib,/path/to/scripts hello.psgi
+\end{shell}
 
 As you can see, multiple paths can be monitored by combining them with
 \lstinline!,! (comma).
@@ -267,9 +267,9 @@ forked child environment.
 
 Using the Shotgun loader is easy:
 
-\begin{lstlisting}
-> plackup -L Shotgun myapp.psgi
-\end{lstlisting}
+\begin{shell}
+$ plackup -L Shotgun myapp.psgi
+\end{shell}
 
 This will delay the compilation of your application to runtime. When a
 request is received it will fork off a new child process to compile your
@@ -280,9 +280,9 @@ reduce the time needed to compile your application.
 For instance, if your application uses Moose and DBIx::Class then use
 the following options:
 
-\begin{lstlisting}
-> plackup -MMoose -MDBIx::Class -L Shotgun myapp.psgi
-\end{lstlisting}
+\begin{shell}
+$ plackup -MMoose -MDBIx::Class -L Shotgun myapp.psgi
+\end{shell}
 
 This speeds up the time required to compile your application in the
 runtime.
@@ -316,9 +316,9 @@ my $app = Plack::App::File->new(root => "$ENV{HOME}/public_html");
 
 and run it with plackup:
 
-\begin{lstlisting}
-> plackup file.psgi
-\end{lstlisting}
+\begin{shell}
+$ plackup file.psgi
+\end{shell}
 
 Now you can access any file under your \lstinline!~/public_html! with
 the URL http://localhost:5000/somefile.html
@@ -326,11 +326,10 @@ the URL http://localhost:5000/somefile.html
 You can also use Plack::App::Directory. This time let's run it with just
 the plackup command without a .psgi file:
 
-\begin{lstlisting}
-> plackup -MPlack::App::Directory \
- -e 'Plack::App::Directory->new(root => "$ENV{HOME}/Sites");
+\begin{shell}
+$ plackup -MPlack::App::Directory -e 'Plack::App::Directory->new(root => "$ENV{HOME}/Sites");
 HTTP::Server::PSGI: Accepting connections at http://0:5000/
-\end{lstlisting}
+\end{shell}
 
 The plackup command, like the perl command, accepts flags like
 \lstinline!-I! (include path), \lstinline!-M! (modules to load), and
@@ -677,9 +676,9 @@ Plack application to run existing CGI scripts written in Perl as PSGI
 applications, suppose you have bunch of CGI scripts in
 \lstinline!/path/to/cgi-bin!, you'll run the server with:
 
-\begin{lstlisting}
-> plackup -MPlack::App::CGIBin -e 'Plack::App::CGIBin->new(root => "/path/to/cgi-bin"))'
-\end{lstlisting}
+\begin{shell}
+$ plackup -MPlack::App::CGIBin -e 'Plack::App::CGIBin->new(root => "/path/to/cgi-bin"))'
+\end{shell}
 
 And that will mount the path \lstinline!/path/to/cgi-bin!, so suppose
 you have \lstinline!foo.pl! in that directory, you can access
@@ -1737,11 +1736,10 @@ this reversehttp.net gateway service.
 
 To use ReverseHTTP, install the required modules and run this:
 
-\begin{lstlisting}
-> plackup -s ReverseHTTP -o yourhostname --token password \
-  -e 'sub { [200, ["Content-Type","text/plain"], ["Hello"]] }'
+\begin{shell}
+$ plackup -s ReverseHTTP -o yourhostname --token password -e 'sub { [200, ["Content-Type","text/plain"], ["Hello"]] }'
 Public Application URL: http://yourhostname.www.reversehttp.net/
-\end{lstlisting}
+\end{shell}
 
 \lstinline!-o! is an alias for \lstinline!--host! for plackup (because
 \lstinline!-h! is taken for \lstinline!--help! :)), and you should
@@ -1758,12 +1756,12 @@ from the browser and viola! You see the ``Hello'' page, right?
 Of course because this is a PSGI server backend, you can use with
 \emph{any} frameworks. Want to use it with Catalyst application?
 
-\begin{lstlisting}
-> catalyst.pl MyApp
-> cd MyApp
-> ./scripts/myapp_create.pl PSGI
-> plackup -o yourhost --token password ./scripts/myapp.psgi
-\end{lstlisting}
+\begin{shell}
+$ catalyst.pl MyApp
+$ cd MyApp
+$ ./scripts/myapp_create.pl PSGI
+$ plackup -o yourhost --token password ./scripts/myapp.psgi
+\end{shell}
 
 That's it! The default Catalyst application will now be accessible with
 the URL http://yourhost.reversehttp.net/ from anywhere in the world.
@@ -1796,9 +1794,9 @@ components, or web application framework adapters themselves?
 
 Try this code:
 
-\begin{lstlisting}
-> plackup -e 'sub { return [ 0, {"Content-Type","text/html"}, "Hello" ] }'
-\end{lstlisting}
+\begin{shell}
+$ plackup -e 'sub { return [ 0, {"Content-Type","text/html"}, "Hello" ] }'
+\end{shell}
 
 Again, writing a raw PSGI interface is not something end users would do
 every day, but this could be a good emulation of what would happen if
@@ -1829,9 +1827,9 @@ production for the best performance.
 Middleware::Lint is the middleware to validate request and response
 interface. Run the application above with the middleware:
 
-\begin{lstlisting}
-> plackup -e 'enable "Lint"; sub { return [ 0, { "Content-Type"=>"text/html" }, ["Hello"] ] }'
-\end{lstlisting}
+\begin{shell}
+$ plackup -e 'enable "Lint"; sub { return [ 0, { "Content-Type"=>"text/html" }, ["Hello"] ] }'
+\end{shell}
 
 and now requests for the application would give a nice stack trace
 saying:

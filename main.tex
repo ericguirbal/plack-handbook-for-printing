@@ -26,6 +26,17 @@
   xleftmargin=\parindent,
   language=Perl
 }
+
+% Environment to show command-line
+\lstnewenvironment{shell}
+  {\lstset{morecomment=[l]{cpan>},
+           morecomment=[l]{$},
+           commentstyle=\bfseries,
+           breaklines=true,
+           breakatwhitespace=false,
+           breakindent=0pt}}
+  {}
+
 \usepackage{titlesec}
 
 % Headers and footers
