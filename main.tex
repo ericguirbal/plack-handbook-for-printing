@@ -90,8 +90,20 @@
   \footnote{\uri{#1}}%
 }
 
-% For typeset url, filename, ...
+% To typeset url, filename, ...
 \DeclareUrlCommand\uri{\def\UrlFont{\rmfamily\itshape}}
+
+% To typeset module or distribution name
+% Hyphenation can occur after :: or at |
+% Usage: \module{Plack::Mid|dle|wa|re::Ses|sion}
+\makeatletter
+\DeclareUrlCommand\module{%
+  \urlstyle{tt}%
+  \def\UrlBigBreaks{\do\:}%
+  \Urlmuskip=0mu plus 1mu%
+  \g@addto@macro\UrlSpecials{\do\|{\allowbreak}}
+}
+\makeatother
 
 \begin{document}
 
