@@ -61,6 +61,7 @@
   \if@twocolumn\hbox{}\newpage\fi\fi\fi}
 \makeatother
 
+\PassOptionsToPackage{hyphens}{url}
 \usepackage{hyperref}
 
 \titleformat{\chapter}[display]
@@ -86,12 +87,11 @@
 \let\oldhref\href
 \renewcommand{\href}[2]{%
   \oldhref{#1}{#2}%
-  \footnote{\url{#1}}%
+  \footnote{\uri{#1}}%
 }
-\renewcommand\UrlFont{\rmfamily\itshape}
 
 % For typeset url, filename, ...
-\newcommand{\uri}{\url}
+\DeclareUrlCommand\uri{\def\UrlFont{\rmfamily\itshape}}
 
 \begin{document}
 
