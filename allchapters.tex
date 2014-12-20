@@ -313,7 +313,7 @@ Using these applications is easy. Just write a \file{.psgi} file like this:
 use Plack::App::File;
 my $app = Plack::App::File->new(root => "$ENV{HOME}/public_html");
 \end{lstlisting}
-
+%
 and run it with \program{plackup}:
 
 \begin{shell}
@@ -652,7 +652,7 @@ CGI::Emulate::PSGI->handler(sub {
     CGI::initialize_globals() if &CGI::initialize_globals;
 });
 \end{lstlisting}
-
+%
 to run existing CGI application that may or may not use \module{CGI.pm} (\module{CGI.pm}
 caches lots of environment variables so it needs
 \lstinline!initialize_globals()! call to clear out the previous request
@@ -833,7 +833,7 @@ $app = Plack::Middleware::Deflater->wrap($app);
 $app = Plack::Middleware::Auth::Basic->wrap($app, authenticator => sub { });
 $app = Plack::Middleware::JSONP->wrap($app);
 \end{lstlisting}
-
+%
 but without lots of \lstinline!use!ing the module which is anti DRY.
 
 \section{Outer to Inner, Top to the
@@ -855,7 +855,7 @@ namespace, like \module{My|Fra|me|work::PSGI::MW::Foo}, you can say:
 enable "+MyFramework::PSGI::MW::Foo";
 \end{lstlisting}
 
-the key here is to use the plus (+) sign to indicate that it is a fully
+The key here is to use the plus (+) sign to indicate that it is a fully
 qualified class name.
 
 \section{What's happening behind}\label{whats-happening-behind}
@@ -893,7 +893,7 @@ my $app = sub {
     return [ 200, [], [ "Hello World" ] ];
 };
 \end{lstlisting}
-
+%
 what about more complex examples, like you have multiple applications,
 each of which inherit from one of the web application frameworks, and
 use one of apache magic like mod\_alias etc.
@@ -969,7 +969,7 @@ $app->mount("/john", $app1);
 $app2 = Plack::Middleware::Auth::Basic->wrap($app2, authenticator => ...);
 $app->mount("/bob",  $app2);
 \end{lstlisting}
-
+%
 but obviously, with less code to write and more obvious to understand
 what's going on.
 
@@ -1346,7 +1346,7 @@ builder {
 This way you run the same \lstinline!$app! in \url{/public} and
 \url{/private} paths, while \url{/private} requires a basic authentication
 and \url{/public} doesn't. (Inlining \lstinline!$env->{REMOTE_USER}!, or
-whatever application logic in \file{.psgi} is not really recommended -- i just
+whatever application logic in \file{.psgi} is not really recommended -- I just
 used it to explain it in an obvious way)
 
 \chapter{Adding JSONP support to your
@@ -1403,7 +1403,7 @@ type is \lstinline!application/json! and if so, checks if there is a
 \begin{lstlisting}
 myCallback({"hello":"world"});
 \end{lstlisting}
-
+%
 with the Content-Type \lstinline!text/javascript!. Content-Length is
 automatically adjusted if there's any.
 
@@ -1806,7 +1806,7 @@ When you access this application with the browser, the server dies with:
 \begin{lstlisting}
 Not an ARRAY reference at lib/Plack/Util.pm line 145.
 \end{lstlisting}
-
+%
 or something similar. This is because the response format is invalid per
 the PSGI interface: the status code is not valid, HTTP headers is not an
 array ref but a hash reference and the response body is a string instead
@@ -1835,7 +1835,7 @@ saying:
 \begin{lstlisting}
 status code needs to be an integer greater than or equal to 100 at ...
 \end{lstlisting}
-
+%
 since now the Lint middleware checks if the response in the valid PSGI
 format.
 
@@ -2078,7 +2078,7 @@ builder {
     $app;
 };
 \end{lstlisting}
-
+%
 to fake all incoming requests as it comes with the good old Internet
 Explorer, and you can also use \lstinline!enable_if! to
 \href{http://advent.plackperl.org/2009/12/day-18-load-middleware-conditionally.html}{conditionally
@@ -2147,20 +2147,20 @@ namespace, like:
 package MyFramework::Middleware::Foo;
 use parent qw(Plack::Middleware);
 \end{lstlisting}
-
+%
 and then use the + (plus) sign to indicate the fully qualified
 namespace,
 
 \begin{lstlisting}
 enable '+MyFramework::Middleware::Foo', ...;
 \end{lstlisting}
-
-Or use the non-DSL API,
+%
+or use the non-DSL API,
 
 \begin{lstlisting}
 $app = MyFramework::Middleware::Foo->wrap($app, ...);
 \end{lstlisting}
-
+%
 and they should work just fine.
 
 \chapter{Wrap up}\label{day-24-wrap-up}
