@@ -14,7 +14,7 @@ document for the PSGI interface. By installing the distribution you can
 read the documents in your shell with the \lstinline!perldoc PSGI! or
 \lstinline!perldoc PSGI::FAQ! commands. Plack gives you the standard
 server implementations, core middleware components, and utilities like
-plackup and \module{Plack::Test}.
+\program{plackup} and \module{Plack::Test}.
 
 Plack doesn't depend on any non-core XS modules so with any Perl
 distribution later than 5.8.1 (which was released more than 6 years
@@ -66,17 +66,17 @@ obviously). It takes exactly one argument \lstinline!$env! (which is not
 used in this code) and returns an array ref containing status, headers,
 and body. That's it.
 
-Save this code in a file named \uri{hello.psgi} and then use the
-plackup command to run it:
+Save this code in a file named \file{hello.psgi} and then use the
+\program{plackup} command to run it:
 
 \begin{shell}
 $ plackup hello.psgi
 HTTP::Server::PSGI: Accepting connections at http://0:5000/
 \end{shell}
 
-plackup runs your application with the default HTTP server
+\program{plackup} runs your application with the default HTTP server
 \module{HTTP::Ser|ver::PSGI} on localhost port 5000. Open the URL
-\uri{http://127.0.0.1:5000/} and you should see the ``Hello World'' page.
+\url{http://127.0.0.1:5000/} and you should see the ``Hello World'' page.
 
 \section{Give me something
 different}\label{give-me-something-different}
@@ -118,8 +118,8 @@ my $app = sub {
 };
 \end{lstlisting}
 
-This app would serve \uri{favicon.ico} if the request path looks like
-\uri{/favicon.ico}, the ``Hello World'' page for requests to the root (\uri{/}) and
+This app would serve \file{favicon.ico} if the request path looks like
+\url{/favicon.ico}, the ``Hello World'' page for requests to the root (\url{/}) and
 otherwise a 404. You can see that a Perl filehandle (\lstinline!$fh!) is
 a valid PSGI response, and you can use any valid HTTP status code for a
 response.
@@ -128,13 +128,13 @@ response.
 
 In the
 \href{http://advent.plackperl.org/2009/12/day-2-hello-world.html}{Day 2}
-article I used the plackup command to run the Hello World PSGI
+article I used the \program{plackup} command to run the Hello World PSGI
 application.
 
-plackup is a command line launcher of PSGI applications inspired by
+\program{plackup} is a command line launcher of PSGI applications inspired by
 Rack's rackup command. It can be used to run any PSGI application saved
-in a \uri{.psgi} file with one of the PSGI web server backends using Plack
-handlers. The usage is simple: just pass a \uri{.psgi} file path to the
+in a \file{.psgi} file with one of the PSGI web server backends using Plack
+handlers. The usage is simple: just pass a \file{.psgi} file path to the
 command:
 
 \begin{shell}
@@ -143,7 +143,7 @@ HTTP::Server::PSGI: Accepting connections at http://0:5000/
 \end{shell}
 
 You can actually omit the filename if you're trying to run the file
-named \uri{app.psgi} in the current directory.
+named \file{app.psgi} in the current directory.
 
 The default backend is chosen using one of the following methods:
 
@@ -158,23 +158,23 @@ The default backend is chosen using one of the following methods:
   backend for CGI or FCGI is used accordingly.
 \item
   If the loaded \lstinline!.psgi! file uses a specific event module like
-  \module{AnyEvent}, \module{Coro} or \module{POE} the equivalent and most appropriate backend is
+  \module{Any|Event}, \module{Co|ro} or \module{POE} the equivalent and most appropriate backend is
   chosen automatically.
 \item
   Otherwise, fallback to the default ``Standalone'' backend implemented
-  in the \module{HTTP::Server::PSGI} module.
+  in the \module{HTTP::Ser|ver::PSGI} module.
 \end{itemize}
 
 You can also specify the backend yourself from the command line using
-the \lstinline!-s! or \lstinline!--server! switch:
+the \switch{-s} or \switch{{-}{-}server} switch:
 
 \begin{shell}
 $ plackup -s Starman hello.psgi
 \end{shell}
 
-By default the plackup command enables three middleware components to
-aid development: Lint, AccessLog, and StackTrace. You can disable them
-with the \lstinline!-E! (or \lstinline!--environment!) switch:
+By default the \program{plackup} command enables three middleware components to
+aid development: \module{Lint}, \module{AccessLog}, and \module{StackTrace}. You can disable them
+with the \switch{-E} (or \switch{{-}{-}environment}) switch:
 
 \begin{shell}
 $ plackup -E production -s Starman hello.psgi
@@ -182,7 +182,7 @@ $ plackup -E production -s Starman hello.psgi
 
 In the case that you really want to use the \lstinline!development!
 Plack environment but want to disable the default middleware there is
-the \lstinline!--no-default-middleware! option.
+the \switch{{-}{-}no-default-middleware} option.
 
 Other command line switches can be passed to the server. You can specify
 the server listen port with:
@@ -199,36 +199,36 @@ with:
 $ plackup -s FCGI --listen /tmp/fcgi.sock app.psgi
 \end{shell}
 
-For more options for plackup, run \lstinline!perldoc plackup! from the
-command line. You'll see more plackup options and hacks tomorrow as
+For more options for \program{plackup}, run \lstinline!perldoc plackup! from the
+command line. You'll see more \program{plackup} options and hacks tomorrow as
 well.
 
 \chapter{Reloading
 applications}\label{day-4-reloading-applications}
 
 \href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{Yesterday}
-I introduced the basics of plackup and its command line options. Today
+I introduced the basics of \program{plackup} and its command line options. Today
 I'll show you more!
 
 \section{Reload the application as
 necessary}\label{reload-the-application-as-necessary}
 
 During development you often change your Perl code, saved in
-\uri{.psgi} or \uri{.pm} files. Because the Plack server
-launched by the plackup command is a persistent process you need to
+\file{.psgi} or \file{.pm} files. Because the Plack server
+launched by the \program{plackup} command is a persistent process you need to
 restart your server whenever your code changes. This is a little
 painful.
 
 So there's an option to watch for changes to files under your working
-directory and reload the application as needed: \lstinline!-r! (or
-\lstinline!--reload!).
+directory and reload the application as needed: \switch{-r} (or
+\switch{{-}{-}reload}).
 
 \begin{shell}
 $ plackup -r hello.psgi
 \end{shell}
 
 It will watch files under the current directory by default, but you can
-change it to watch additional locations by using the \lstinline!-R!
+change it to watch additional locations by using the \switch{-R}
 option (note the uppercase).
 
 \begin{shell}
@@ -238,7 +238,7 @@ $ plackup -R lib,/path/to/scripts hello.psgi
 As you can see, multiple paths can be monitored by combining them with
 \lstinline!,! (comma).
 
-By default plackup uses a dumb timer to scan the whole directory, but if
+By default \program{plackup} uses a dumb timer to scan the whole directory, but if
 you're on Linux and have \module{Linux::Inotify2} installed or on Mac OS and have
 \module{Mac::FSEvents} installed filesystem notification is used so it's more
 efficient.
@@ -246,13 +246,13 @@ efficient.
 \section{-r vs Server
 auto-detection}\label{r-vs-server-auto-detection}
 
-In Day 3 I told you that plackup's automatic server detection is smart
+In Day 3 I told you that \program{plackup}'s automatic server detection is smart
 enough to tell if PSGI application uses an event modules such as
 \module{AnyEvent} or \module{Coro} and choose the correct backend. Be aware that this
-automatic selection doesn't work if you use the \lstinline!-r! option
-because plackup uses a delayed loading technique to reload apps in
+automatic selection doesn't work if you use the \switch{-r} option
+because \program{plackup} uses a delayed loading technique to reload apps in
 forked processes. It's recommended that you explicitly set the server
-with the \lstinline!-s! option when using the \lstinline!-r! option.
+with the \switch{-s} option when using the \switch{-r} option.
 
 \section{Reloading sucks? Shotgun!}\label{reloading-sucks-shotgun}
 
@@ -297,8 +297,8 @@ and
 \href{http://search.cpan.org/perldoc?Plack::App::Directory}{\module{Plack::App::Directory}}.
 
 \module{Plack::App::File} translates a request path like
-\uri{/foo/bar.html} into a local file like
-\uri{/path/to/htdocs/foo/bar.html}, opens the file handle, and
+\url{/foo/bar.html} into a local file like
+\url{/path/to/htdocs/foo/bar.html}, opens the file handle, and
 passes it back as a PSGI response. It basically does what a static web
 server like lighttpd, nginx or Apache does.
 
@@ -307,34 +307,34 @@ directory index, just like
 \href{http://httpd.apache.org/docs/2.0/mod/mod_autoindex.html}{Apache's
 mod\_autoindex} does.
 
-Using these applications is easy. Just write a \uri{.psgi} file like this:
+Using these applications is easy. Just write a \file{.psgi} file like this:
 
 \begin{lstlisting}
 use Plack::App::File;
 my $app = Plack::App::File->new(root => "$ENV{HOME}/public_html");
 \end{lstlisting}
 
-and run it with plackup:
+and run it with \program{plackup}:
 
 \begin{shell}
 $ plackup file.psgi
 \end{shell}
 
-Now you can access any file under your \uri{~/public_html} with
-the URL \uri{http://localhost:5000/somefile.html}
+Now you can access any file under your \url{~/public_html} with
+the URL \url{http://localhost:5000/somefile.html}
 
 You can also use \module{Plack::App::Directory}. This time let's run it with just
-the plackup command without a \uri{.psgi} file:
+the \program{plackup} command without a \file{.psgi} file:
 
 \begin{shell}
-$ plackup -MPlack::App::Directory -e 'Plack::App::Directory->new(root => "$ENV{HOME}/Sites");
+$ plackup -MPlack::App::Directory -e 'Plack::App::Directory->new(root => "$ENV{HOME}/Sites")'
 HTTP::Server::PSGI: Accepting connections at http://0:5000/
 \end{shell}
 
-The plackup command, like the perl command, accepts flags like
-\lstinline!-I! (include path), \lstinline!-M! (modules to load), and
-\lstinline!-e! (the code to eval), so it's easy to load these
-\module{Plack::App::*} applications without ever touching a \uri{.psgi} file!
+The \program{plackup} command, like the perl command, accepts flags like
+\switch{-I} (include path), \switch{-M} (modules to load), and
+\switch{-e} (the code to eval), so it's easy to load these
+\module{Plack::App::*} applications without ever touching a \file{.psgi} file!
 
 There are a couple of other \module{Plack::App} applications in the Plack
 distribution.
@@ -413,7 +413,7 @@ to run existing \module{CGI::Application} code \emph{unmodified} in a PSGI
 compatible mode.
 
 All you have to do is install \module{CGI::Application::PSGI} from CPAN and write
-a \uri{.psgi} file that looks like this:
+a \file{.psgi} file that looks like this:
 
 \begin{lstlisting}
 use CGI::Application::PSGI;
@@ -427,7 +427,7 @@ my $app = sub {
 \end{lstlisting}
 
 Then use
-\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{plackup}
+\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{\program{plackup}}
 to run the application with a standalone server or any of the other
 backends.
 
@@ -443,7 +443,7 @@ there's no need to install a separate engine.)
 The point is that with support from web frameworks you often won't need
 to modify a single line of code in your application to use PSGI. And by
 switching to PSGI there are lots of benefits like being able to use the
-toolchain of plackup, \module{Plack::Test}, and middleware which we'll discuss in
+toolchain of \program{plackup}, \module{Plack::Test}, and middleware which we'll discuss in
 future advent entries.
 
 \chapter{Adapting web frameworks to
@@ -680,10 +680,10 @@ applications, suppose you have bunch of CGI scripts in
 $ plackup -MPlack::App::CGIBin -e 'Plack::App::CGIBin->new(root => "/path/to/cgi-bin"))'
 \end{shell}
 
-And that will mount the path \uri{/path/to/cgi-bin}, so suppose
-you have \uri{foo.pl} in that directory, you can access
-\uri{http://localhost:5000/foo.pl} to run the CGI application as a PSGI over
-the plackup, just like the scripts running on Apache mod\_perl Registry
+And that will mount the path \url{/path/to/cgi-bin}, so suppose
+you have \file{foo.pl} in that directory, you can access
+\url{http://localhost:5000/foo.pl} to run the CGI application as a PSGI over
+the \program{plackup}, just like the scripts running on Apache mod\_perl Registry
 mechanism.
 
 \chapter{Using Plack
@@ -701,8 +701,6 @@ a server and an application.
 \caption{WSGI middleware onion 
   \emph{(Image courtesy of Pylons project for Python WSGI)}}
 \end{figure}
-
-(Image courtesy of Pylons project for Python WSGI)
 
 This picture illustrates the middleware concept very well. The PSGI
 application is in the core of the Onion layers, and middleware
@@ -733,7 +731,7 @@ $app = Plack::Middleware::StackTrace->wrap($app);
 This example wraps the original application with StackTrace middleware
 (which is actually enabled
 \href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{by
-default using plackup}) with the \lstinline!wrap! method. So when the
+default using \program{plackup}}) with the \lstinline!wrap! method. So when the
 wrapped application throws an error, the middleware component catches
 the error to
 \href{http://bulknews.typepad.com/blog/2009/10/develstacktraceashtml.html}{display
@@ -801,7 +799,7 @@ supports PSGI}.
 \chapter{Using Plack::Builder}\label{day-11-using-plackbuilder}
 
 \href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{Yesterday}
-we saw how to enable Plack middleware components in \uri{.psgi} file, using
+we saw how to enable Plack middleware components in \file{.psgi} file, using
 its \lstinline!wrap! class method. The way you \lstinline!use! the
 middleware and then wrap the \lstinline!$app! with \lstinline!wrap! is
 tedious and not intuitive, so we have a DSL (Domain Specific Language)
@@ -869,7 +867,7 @@ statement) as an original application (\lstinline!$app!), and then
 returns the wrapped application by applying Middleware in the reverse
 order. So it is important to have \lstinline!$app! in the last line
 inside the \lstinline!builder! block, and have the \lstinline!builder!
-statement as the final statement in \uri{.psgi} file as well.
+statement as the final statement in \file{.psgi} file as well.
 
 \section{Thanks, Rack}\label{thanks-rack}
 
@@ -931,7 +929,7 @@ $app->mount("/bob"  => $app2);
 There you go. Your app now dispatches all requests beginning with
 \lstinline!/john! to \lstinline!$app1! which says ``Hello John'' and
 \lstinline!/bob! to \lstinline!$app2!, which is to say ``Hello Bob''. As
-a result, all requests to unmapped paths, like the root (\uri{/}) gives
+a result, all requests to unmapped paths, like the root (\url{/}) gives
 you 404.
 
 The environment variables such as \lstinline!PATH_INFO! and
@@ -959,8 +957,8 @@ builder {
 };
 \end{lstlisting}
 
-Requests to \uri{/john} is handled exactly the same way with the normal
-URLMap. But this example uses \lstinline!builder! for \uri{/bob}, so it
+Requests to \url{/john} is handled exactly the same way with the normal
+URLMap. But this example uses \lstinline!builder! for \url{/bob}, so it
 enables the basic authentication to display the ``Hello Bob'' page. This
 should be syntactically equivalent to:
 
@@ -1008,7 +1006,7 @@ builder {
 \end{lstlisting}
 
 And now you have three applications, each of which inherit from
-different web framework, running on the same server (via plackup or
+different web framework, running on the same server (via \program{plackup} or
 other \module{Plack::Handler::*} implementations) mapped on different paths.
 
 \chapter{use Plack::Test to test your
@@ -1057,7 +1055,7 @@ done_testing;
 Create or load PSGI application like usual (you can use
 \href{http://search.cpan.org/perldoc?Plack::Util}{\module{Plack::Util}}'s
 \lstinline!load_psgi! function if you want to load an app from a
-\uri{.psgi} file), and call \lstinline!test_psgi! function to test
+\file{.psgi} file), and call \lstinline!test_psgi! function to test
 the application. The second argument is a callback that acts as a
 testing client.
 
@@ -1072,7 +1070,7 @@ an \module{HTTP::Request} object that would return \module{HTTP::Response} objec
 normal \module{LWP::UserAgent} would do, and you can make as many requests as you
 want, and test various attributes and response details.
 
-Save that code as \uri{.t} file and use the tool such as
+Save that code as \file{.t} file and use the tool such as
 \lstinline!prove! to run the tests.
 
 \section{use HTTP::Request::Common}\label{use-httprequestcommon}
@@ -1093,7 +1091,7 @@ test_psgi $app, sub {
 \end{lstlisting}
 
 Notice that you can even omit the scheme and hostname, which would
-default to \uri{http://localhost/} anyway.
+default to \url{http://localhost/} anyway.
 
 \section{Run in a server/mock mode}\label{run-in-a-servermock-mode}
 
@@ -1155,7 +1153,7 @@ PSGI.
 
 Plack is not a framework per se, but is more of a toolkit that contains
 PSGI server implementations as well as utilities like
-\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{plackup},
+\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{\program{plackup}},
 \href{http://advent.plackperl.org/2009/12/day-13-use-placktest-to-test-your-application.html}{\module{Plack::Test}}
 and
 \href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{Middleware
@@ -1213,12 +1211,12 @@ other PSGI server implementations such as mod\_psgi.
 
 Directly using \module{Plack::Request} in the \lstinline!.psgi! code is quite
 handy to quickly write and test your code but not really recommended for
-a large scale application. It's exactly like writing a 1000 lines of
-\uri{.cgi} script where you could factor out the application code
-into a module (\uri{.pm} files). The same thing applies to
-\uri{.psgi} file: it's best to create an application class by
+a large scale application. It's exactly like writing a 1{,}000 lines of
+\file{.cgi} script where you could factor out the application code
+into a module (\file{.pm} files). The same thing applies to
+\file{.psgi} file: it's best to create an application class by
 using and possibly extending \module{Plack::Request}, and then have just a few
-lines of code in \uri{.psgi} file with
+lines of code in \file{.psgi} file with
 \href{http://advent.plackperl.org/2009/12/day-11-using-plackbuilder.html}{\module{Plack::Builder}
 to configure middleware components}.
 
@@ -1345,10 +1343,10 @@ builder {
 };
 \end{lstlisting}
 
-This way you run the same \lstinline!$app! in \uri{/public} and
-\uri{/private} paths, while \uri{/private} requires a basic authentication
-and \uri{/public} doesn't. (Inlining \lstinline!$env->{REMOTE_USER}!, or
-whatever application logic in \uri{.psgi} is not really recommended -- i just
+This way you run the same \lstinline!$app! in \url{/public} and
+\url{/private} paths, while \url{/private} requires a basic authentication
+and \url{/public} doesn't. (Inlining \lstinline!$env->{REMOTE_USER}!, or
+whatever application logic in \file{.psgi} is not really recommended -- i just
 used it to explain it in an obvious way)
 
 \chapter{Adding JSONP support to your
@@ -1399,8 +1397,8 @@ builder {
 So it's just one line! The middleware checks if the response content
 type is \lstinline!application/json! and if so, checks if there is a
 \lstinline!callback! parameter in the URL. So a request to
-\uri{/whatever.json} continues to return the JSON but requests to
-\uri{/whatever.json?callback=myCallback} would return:
+\url{/whatever.json} continues to return the JSON but requests to
+\url{/whatever.json?callback=myCallback} would return:
 
 \begin{lstlisting}
 myCallback({"hello":"world"});
@@ -1455,7 +1453,7 @@ application}\label{day-17-serving-static-files-from-your-application}
 On
 \href{http://advent.plackperl.org/2009/12/day-5-run-a-static-file-web-server-with-plack.html}{day
 5} we talked about serving files from the current directory using
-plackup. Now that we've learned how to
+\program{plackup}. Now that we've learned how to
 \href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{use
 middleware} and
 \href{http://advent.plackperl.org/2009/12/day-12-maps-multiple-apps-with-mount-and-urlmap.html}{compound
@@ -1481,13 +1479,13 @@ builder {
 }
 \end{lstlisting}
 
-This will intercept all requests beginning with \uri{/static} and map that
-to the root directory \uri{htdocs}. So requests to
-\uri{/static/images/foo.jpg} will result in serving a file
-\uri{./htdocs/static/images/foo.jpg}.
+This will intercept all requests beginning with \url{/static} and map that
+to the root directory \file{htdocs}. So requests to
+\url{/static/images/foo.jpg} will result in serving a file
+\url{./htdocs/static/images/foo.jpg}.
 
 Often you want to overlap or cofigure the directory names, so a request
-to the URL \uri{/static/index.css} mapped to \uri{./static-files/index.css},
+to the URL \url{/static/index.css} mapped to \file{./static-files/index.css},
 here's how to do that:
 
 \begin{lstlisting}
@@ -1502,11 +1500,11 @@ The important thing here is to use a callback and a pattern match
 (\lstinline!qr!). The callback is tested against a request path and if
 it matches, the value of \lstinline!$_! is being used as a request path.
 So in this example we tested to see if the request begins with
-\uri{/static/} and in that case, strip off that part, and map the files
-under \uri{./static-files/}.
+\url{/static/} and in that case, strip off that part, and map the files
+under \file{./static-files/}.
 
-As a result, \uri{/static/foo.jpg} would become
-\uri{./static-files/foo.jpg}. All requests not matching the pattern match
+As a result, \url{/static/foo.jpg} would become
+\file{./static-files/foo.jpg}. All requests not matching the pattern match
 just passes through to the original \lstinline!$app!.
 
 \section{Do it your own with URLMap and
@@ -1741,10 +1739,10 @@ $ plackup -s ReverseHTTP -o yourhostname --token password -e 'sub { [200, ["Cont
 Public Application URL: http://yourhostname.www.reversehttp.net/
 \end{shell}
 
-\lstinline!-o! is an alias for \lstinline!--host! for plackup (because
-\lstinline!-h! is taken for \lstinline!--help! :)), and you should
+\switch{-o} is an alias for \switch{{-}{-}host} for \program{plackup} (because
+\switch{-h} is taken for \switch{{-}{-}help} :)), and you should
 specify the subdomain (label) you're going to use. You should also
-supply \lstinline!--token! which is like a generic password so nobody
+supply \switch{{-}{-}token} which is like a generic password so nobody
 else can use your label once registered. You can omit this option if you
 \emph{really} want anyone else to take that subdomain over.
 
@@ -1764,7 +1762,7 @@ $ plackup -o yourhost --token password ./scripts/myapp.psgi
 \end{shell}
 
 That's it! The default Catalyst application will now be accessible with
-the URL \uri{http://yourhost.reversehttp.net/} from anywhere in the world.
+the URL \url{http://yourhost.reversehttp.net/} from anywhere in the world.
 
 \section{Notes}\label{notes}
 
@@ -1930,7 +1928,7 @@ adapters don't have an access to this environment hash from end users
 application yet, so it should be updated gradually in the near future.
 
 Session middleware is developed by Stevan Little on
-\href{http://github.com/stevan/plack-middleware-session}{github} and is
+\href{http://github.com/stevan/plack-middleware-session}{GitHub} and is
 available on CPAN as well.
 
 \section{Debug}\label{debug}
@@ -1958,7 +1956,7 @@ default panels.
 
 More extensions for the panels, such as DBI query profiler or Catalyst
 log dumper are being developed on
-\href{http://github.com/miyagawa/plack-middleware-debug/}{github}.
+\href{http://github.com/miyagawa/plack-middleware-debug/}{GitHub}.
 
 \section{Proxy}\label{proxy}
 
@@ -1985,7 +1983,7 @@ builder {
 \end{lstlisting}
 
 Proxy middleware is developed by Lee Aylward on
-\href{http://github.com/leedo/Plack-App-Proxy}{github}.
+\href{http://github.com/leedo/Plack-App-Proxy}{GitHub}.
 
 \section{More}\label{more}
 
@@ -2045,7 +2043,7 @@ string.
 Middleware}\label{make-it-a-reusable-middleware}
 
 So that was a good example of writing your own middleware in
-\uri{.psgi}. If it is one-time middleware that you can quickly
+\file{.psgi}. If it is one-time middleware that you can quickly
 whip up then that's great, but you often want to make it generic enough
 or reusable in other applications too. Then you should use
 \module{Plack::Middleware}.
@@ -2182,8 +2180,8 @@ either directly or with an accessor method. This allows your framework
 to share and extend functionality with middleware components like Debug
 or Session.
 
-Do not write your application logic in \uri{.psgi} files using
-\module{Plack::Request}. It's like writing a 1000 lines of CGI script using
+Do not write your application logic in \file{.psgi} files using
+\module{Plack::Request}. It's like writing a 1{,}000 lines of CGI script using
 \module{CGI.pm}, so if you think that's your favorite i won't give you any
 further advice, but usually you want to make your application
 \href{http://advent.plackperl.org/2009/12/day-13-use-placktest-to-test-your-application.html}{testable}
@@ -2200,7 +2198,7 @@ how it's written.
 
 \section{Explore more stuff}\label{explore-more-stuff}
 
-Most of the Plack gangs use \href{http://github.com/}{github} for the
+Most of the Plack gangs use \href{http://github.com/}{GitHub} for the
 source control and
 \href{http://github.com/search?langOverride=\&q=plack\&repo=\&start_value=1\&type=Repositories}{searching
 for repositories with ``Plack''} would give you a fresh look of what
@@ -2219,12 +2217,12 @@ Again, Plack is a fairly young project. It's just been 3 months since we
 gave this project a birth. There are many things that could get more
 improvements, so if you come across one of them, don't stop there. Let
 us know what you think is a problem, give us an insight how it could be
-improved, or if you're impatient, fork the project on github and send us
+improved, or if you're impatient, fork the project on GitHub and send us
 patches.
 
 We're chatting on IRC channel \#plack on irc.perl.org and there's a
 \href{http://groups.google.com/group/psgi-plack}{mailing list} and
-\href{http://github.com/plack/Plack/issues}{an issue tracker on github}
+\href{http://github.com/plack/Plack/issues}{an issue tracker on GitHub}
 to communicate with us.
 
 \section{On a final note\ldots{}}\label{on-a-final-note}

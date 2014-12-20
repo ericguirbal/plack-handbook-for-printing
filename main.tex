@@ -12,7 +12,6 @@
   { encoding = *,
     shape = sc }
   { 50 }
-
 \usepackage{graphicx}
 \usepackage{listings}
 \lstset{
@@ -87,23 +86,37 @@
 \let\oldhref\href
 \renewcommand{\href}[2]{%
   \oldhref{#1}{#2}%
-  \footnote{\uri{#1}}%
+  \footnote{\url{#1}}%
 }
-
-% To typeset url, filename, ...
-\DeclareUrlCommand\uri{\def\UrlFont{\rmfamily\itshape}}
-
-% To typeset module or distribution name
+%
+% Typographical conventions
+%
+\newcommand*{\sourceFont}{\ttfamily\footnotesize}
+\newcommand*{\inlineSourceFont}{\normalsize\ttfamily}
+\newcommand*{\urlFont}{\itshape}
+\newcommand*{\fileFont}{\itshape}
+\newcommand*{\moduleFont}{\ttfamily}
+\newcommand*{\programFont}{\itshape}
+% url
+\DeclareUrlCommand\url{\def\UrlFont{\urlFont}}
+% filename
+\DeclareUrlCommand\file{\def\UrlFont{\fileFont}}
+% Module or distribution name
 % Hyphenation can occur after :: or at |
 % Usage: \module{Plack::Mid|dle|wa|re::Ses|sion}
 \makeatletter
 \DeclareUrlCommand\module{%
-  \urlstyle{tt}%
+  \def\UrlFont{\moduleFont}%
   \def\UrlBigBreaks{\do\:}%
-  \Urlmuskip=0mu plus 1mu%
   \g@addto@macro\UrlSpecials{\do\|{\allowbreak}}
 }
 \makeatother
+% Program name
+\newcommand*{\program}[1]{{\programFont#1}}
+
+% Command-line switch
+\newcommand*{\switch}[1]{\textit{#1}}
+
 
 \begin{document}
 
