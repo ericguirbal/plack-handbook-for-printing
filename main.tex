@@ -125,6 +125,18 @@
 % Command-line switch
 \newcommand*{\switch}[1]{\textit{#1}}
 
+% Recompile SVG file to PDF if necessary
+\newcommand{\executeiffilenewer}[3]{%
+  \ifnum\pdfstrcmp{\pdffilemoddate{#1}}%
+  {\pdffilemoddate{#2}}>0%
+  \immediate\write18{#3}\fi%
+}
+% Include an SVG file
+\newcommand{\includesvg}[2][]{%
+  \executeiffilenewer{#2.svg}{#2.pdf}%
+  {inkscape -z -D --file=#2.svg --export-pdf=#2.pdf --export-pdf}%
+  \includegraphics[#1]{#2.pdf}%
+}
 
 \begin{document}
 
