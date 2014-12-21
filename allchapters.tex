@@ -44,11 +44,13 @@ prepared.
 The first program you write in any programming language is the one that
 prints ``Hello World''. Let's follow that tradition for PSGI as well.
 
-\textbf{Note:} Today's code is written to a raw PSGI interface to help
+\begin{note}
+  Today's code is written to a raw PSGI interface to help
 you understand what's going on. In reality you should never have to do
 this unless you're a web application framework developer. Instead you
 should use one of the \href{http://plackperl.org/\#frameworks}{existing
 frameworks that supports PSGI}.
+\end{note}
 
 \section{Hello, World}\label{hello-world}
 
@@ -436,9 +438,12 @@ engine, or adapter to make the framework run in PSGI mode. For instance,
 \href{http://www.catalystframework.org/}{Catalyst} has a
 \module{Catalyst::Engine::*} web server abstraction and
 \href{http://search.cpan.org/perldoc?Catalyst::Engine::PSGI}{\module{Catalyst::Engine::PSGI}}
-is the engine to adapt Catalyst to run on PSGI. (\textbf{EDIT}: As of
-Catalyst 5.8 released in 2011, Catalyst supports PSGI by default and
-there's no need to install a separate engine.)
+is the engine to adapt Catalyst to run on PSGI. 
+
+\begin{note}
+  As of Catalyst 5.8 released in 2011, Catalyst supports PSGI by default and
+  there's no need to install a separate engine.)
+\end{note}
 
 The point is that with support from web frameworks you often won't need
 to modify a single line of code in your application to use PSGI. And by
@@ -1698,8 +1703,9 @@ cascade them, this is the way to go :)
 \chapter{Access your local app from the
 internet}\label{day-20-access-your-local-app-from-the-internet}
 
-(\textbf{EDIT}: the reverseHTTP service we mention here is not available
-as of 2012)
+\begin{note}
+  The ReverseHTTP service we mention here is not available as of 2012.
+\end{note}
 
 These days laptops with modern operation systems allows you to quickly
 develop a web application and test it locally with its local IP address.

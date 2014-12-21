@@ -88,6 +88,14 @@
   \oldhref{#1}{#2}%
   \footnote{\url{#1}}%
 }
+
+\usepackage[strict]{changepage}
+\newenvironment{note}
+  {\medskip\begin{adjustwidth}{\parindent}{\parindent}%
+    % Why -2pt is needed ?
+    \makebox[-2pt][r]{\scshape\lsstyle Note\space}\small}%
+  {\end{adjustwidth}\medskip}
+
 %
 % Typographical conventions
 %
