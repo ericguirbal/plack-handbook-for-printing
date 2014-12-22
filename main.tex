@@ -13,6 +13,7 @@
     shape = sc }
   { 50 }
 \usepackage{graphicx}
+\usepackage{wallpaper}
 \usepackage{listings}
 \lstset{
   basicstyle=\normalsize\ttfamily\lst@ifdisplaystyle\footnotesize\fi,
@@ -137,6 +138,9 @@
   {inkscape -z -D --file=#2.svg --export-pdf=#2.pdf --export-pdf}%
   \includegraphics[#1]{#2.pdf}%
 }
+\newcommand{\downloadcoverphoto}[2]{%
+  \IfFileExists{images/#1}{}{\immediate\write18{wget -O images/#1 "#2"}}%
+}
 
 \begin{document}
 
@@ -148,11 +152,15 @@
 
 \begin{titlepage}
   \newgeometry{margin=2cm}
-  \vspace*{1cm}
-  \centering
-  {\fontsize{60}{72}\selectfont Plackup}\\[2\baselineskip]
-  {\fontsize{60}{72}\selectfont Handbook}\\[6\baselineskip]
-  {\LARGE Tatsuhiko Miyagawa}
+  \setlength{\wpXoffset}{0cm}
+  \setlength{\wpYoffset}{-2cm}
+  \downloadcoverphoto{cover-a5.jpg}{https://lut.im/JDt1SkPJ/Ug7omIxq?dl}
+  \ThisCenterWallPaper{1}{cover-a5.jpg}  
+  \null
+  {\fontsize{60}{72}\selectfont\bfseries\color{black}\hfill Plackup}\\[1.2\baselineskip]
+  {\fontsize{60}{72}\selectfont\bfseries\color{lightgray}\hfill Handbook}
+  \vfill
+  {\LARGE\color{black}\hfill\itshape Tatsuhiko Miyagawa}
 \end{titlepage}
 
 \include{copyright}
