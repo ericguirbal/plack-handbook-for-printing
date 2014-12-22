@@ -11,11 +11,11 @@ The changes relate only to the layout and typography.
 
 ## License
 
-See `LICENSE` file.
+See LICENSE file.
 
 ## Compilation
 
-You need a LaTeX distribution, `wget` to download the cover photography and `Inkscape` to compile SVG to PDF.
+You need a LaTeX distribution, wget to download the cover photography and Inkscape to compile SVG to PDF.
 
 To compile the book, just run
 
