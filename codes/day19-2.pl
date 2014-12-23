@@ -1,4 +1,3 @@
-
 use CatalystApp;
 CatalystApp->setup_engine('PSGI');
 my $app1 = sub { CatalystApp->run(@_) };

@@ -1,4 +1,3 @@
-
 package Plack::Middleware::BadStatusCode;
 use strict;
 use parent qw(Plack::Middleware);
