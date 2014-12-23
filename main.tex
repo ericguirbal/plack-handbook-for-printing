@@ -12,6 +12,7 @@
   { encoding = *,
     shape = sc }
   { 50 }
+\usepackage{xstring}
 \usepackage{graphicx}
 \usepackage{wallpaper}
 \usepackage{listings}
@@ -87,7 +88,9 @@
 \let\oldhref\href
 \renewcommand{\href}[2]{%
   \oldhref{#1}{#2}%
-  \footnote{\url{#1}}%
+  % Every Perl developper knows where to find documentation for Perl modules
+  % so there is no need to waste space in the footnote
+  \IfSubStr{#1}{cpan.org}{}{\footnote{\url{#1}}}
 }
 
 \usepackage[strict]{changepage}
