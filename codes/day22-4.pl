@@ -1,0 +1,5 @@
+builder {
+    enable "Debug";
+    $app;
+};
+

@@ -15,9 +15,10 @@ See LICENSE file.
 
 ## Compilation
 
-You need a LaTeX distribution, wget to download the cover photography and Inkscape to compile SVG to PDF.
+You need a LaTeX distribution, wget to download the cover photography, Inkscape to compile SVG to PDF and perltidy to reformat
+Perl code included in the book.
 
 To compile the book, just run
 
-    pdflatex --shell-escape main.tex && pdflatex main.tex && pdflatex main.tex
+    mkdir build && pdflatex --shell-escape main.tex && pdflatex main.tex && pdflatex main.tex
 

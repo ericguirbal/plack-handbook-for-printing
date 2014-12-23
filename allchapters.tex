@@ -56,11 +56,7 @@ frameworks that supports PSGI}.
 
 Here's the minimal code that prints ``Hello World'' to the client:
 
-\begin{lstlisting}
-my $app = sub {
-    return [ 200, [ 'Content-Type' => 'text/plain' ], [ 'Hello World' ] ];
-};
-\end{lstlisting}
+\inputperl{day2-1.pl}
 
 A PSGI application is a Perl subroutine reference (a coderef) and is
 usually referenced as \lstinline!$app! (it could be named anything
@@ -86,16 +82,7 @@ different}\label{give-me-something-different}
 Hello World is the simplest code imaginable. We can do more here. Let's
 read and display the client information using the PSGI environment hash.
 
-\begin{lstlisting}
-my $app = sub {
-    my $env = shift;
-    return [
-        200,
-        ['Content-Type' => 'text/plain'],
-        [ "Hello stranger from $env->{REMOTE_ADDR}!"],
-    ];
-};
-\end{lstlisting}
+\inputperl{day2-2.pl}
 
 This code will display the remote address using the PSGI environment
 hash. It will normally be 127.0.0.1 if you're running the server on your
@@ -106,19 +93,7 @@ like the CGI environment variables.
 Want to display something that isn't just text? We can do this by
 reading a file:
 
-\begin{lstlisting}
-my $app = sub {
-    my $env = shift;
-    if ($env->{PATH_INFO} eq '/favicon.ico') {
-        open my $fh, "<:raw", "/path/to/favicon.ico" or die $!;
-        return [ 200, ['Content-Type' => 'image/x-icon'], $fh ];
-    } elsif ($env->{PATH_INFO} eq '/') {
-        return [ 200, ['Content-Type' => 'text/plain'], [ "Hello again" ] ];
-    } else {
-        return [ 404, ['Content-Type' => 'text/html'], [ '404 Not Found' ] ];
-    }
-};
-\end{lstlisting}
+\inputperl{day2-3.pl}
 
 This app would serve \file{favicon.ico} if the request path looks like
 \url{/favicon.ico}, the ``Hello World'' page for requests to the root (\url{/}) and
@@ -311,10 +286,7 @@ mod\_autoindex} does.
 
 Using these applications is easy. Just write a \file{.psgi} file like this:
 
-\begin{lstlisting}
-use Plack::App::File;
-my $app = Plack::App::File->new(root => "$ENV{HOME}/public_html");
-\end{lstlisting}
+\inputperl{day5-1.pl}
 %
 and run it with \program{plackup}:
 
@@ -354,29 +326,12 @@ to deal with environment differences because it's the easiest.
 module subclass that makes it easy to migrate existing \module{CGI.pm} based
 applications to PSGI. Imagine you have the following CGI application:
 
-\begin{lstlisting}
-use CGI;
-
-my $q = CGI->new;
-print $q->header('text/plain'),
-    "Hello ", $q->param('name');
-\end{lstlisting}
+\inputperl{day6-1.pl}
 
 This is a very simple CGI application and converting this to PSGI is
 easy using the \module{CGI::PSGI} module:
 
-\begin{lstlisting}
-use CGI::PSGI;
-
-my $app = sub {
-    my $env = shift;
-    my $q = CGI::PSGI->new($env);
-    return [
-        $q->psgi_header('text/plain'),
-        [ "Hello ", $q->param('name') ],
-    ];
-};
-\end{lstlisting}
+\inputperl{day6-2.pl}
 
 \lstinline!CGI::PSGI->new($env)! takes the PSGI environment hash and
 creates an instance of \module{CGI::PSGI}, which is a subclass of \module{CGI.pm}. All
@@ -417,16 +372,7 @@ compatible mode.
 All you have to do is install \module{CGI::Application::PSGI} from CPAN and write
 a \file{.psgi} file that looks like this:
 
-\begin{lstlisting}
-use CGI::Application::PSGI;
-use WebApp;
-
-my $app = sub {
-    my $env = shift;
-    my $app = WebApp->new({ QUERY => CGI::PSGI->new($env) });
-    CGI::Application::PSGI->run($app);
-};
-\end{lstlisting}
+\inputperl{day7-1.pl}
 
 Then use
 \href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{\program{plackup}}
@@ -473,30 +419,7 @@ using \module{CGI::Application::PSGI}. \module{CGI::Application}, as the name su
 uses \module{CGI.pm}, so using \module{CGI::PSGI} instead and defining a new runner class
 is the easiest way to go.
 
-\begin{lstlisting}
-package CGI::Application::PSGI;
-use strict;
-use CGI::PSGI;
-
-sub run {
-    my($class, $app) = @_;
-
-    # HACK: deprecate HTTP header generation
-    # -- CGI::Application should support some flag to turn this off cleanly
-    my $body = do {
-        no warnings 'redefine';
-        local *CGI::Application::_send_headers = sub { '' };
-        local $ENV{CGI_APP_RETURN_ONLY} = 1;
-        $app->run;
-    };
-
-    my $q    = $app->query;
-    my $type = $app->header_type;
-
-    my @headers = $q->psgi_header($app->header_props);
-    return [ @headers, [ $body ] ];
-}
-\end{lstlisting}
+\inputperl{day8-1.pl}
 
 That's quite simple, isn't it? \module{CGI::Application}'s \lstinline!run()!
 method usually returns the whole output, including HTTP headers and
@@ -537,74 +460,7 @@ like mod\_perl, FastCGI, or even other frameworks like Catalyst or
 \module{HTTP::Engine}. It was extremely easy to write
 \href{http://search.cpan.org/perldoc?Squatting::On::PSGI}{\module{Squatting::On::PSGI}}:
 
-\begin{lstlisting}
-package Squatting::On::PSGI;
-use strict;
-use CGI::Cookie;
-use Plack::Request;
-use Squatting::H;
-
-my %p;
-$p{init_cc} = sub {
-  my ($c, $env)  = @_;
-  my $cc       = $c->clone;
-  $cc->env     = $env;
-  $cc->cookies = $p{c}->($env->{HTTP_COOKIE} || '');
-  $cc->input   = $p{i}->($env);
-  $cc->headers = { 'Content-Type' => 'text/html' };
-  $cc->v       = { };
-  $cc->status  = 200;
-  $cc;
-};
-
-# \%input = i($env)  # Extract CGI parameters from an env object
-$p{i} = sub {
-  my $r = Plack::Request->new($_[0]);
-  my $p = $r->params;
-  +{%$p};
-};
-
-# \%cookies = $p{c}->($cookie_header)  # Parse Cookie header(s).
-$p{c} = sub {
-  +{ map { ref($_) ? $_->value : $_ } CGI::Cookie->parse($_[0]) };
-};
-
-sub psgi {
-  my ($app, $env) = @_;
-
-  $env->{PATH_INFO} ||= "/";
-  $env->{REQUEST_PATH} ||= do {
-      my $script_name = $env->{SCRIPT_NAME};
-      $script_name =~ s{/$}{};
-      $script_name . $env->{PATH_INFO};
-  };
-  $env->{REQUEST_URI} ||= do {
-    ($env->{QUERY_STRING})
-      ? "$env->{REQUEST_PATH}?$env->{QUERY_STRING}"
-      : $env->{REQUEST_PATH};
-  };
-
-  my $res;
-  eval {
-      no strict 'refs';
-      my ($c, $args) = &{ $app . "::D" }($env->{REQUEST_PATH});
-      my $cc = $p{init_cc}->($c, $env);
-      my $content = $app->service($cc, @$args);
-
-      $res = [
-          $cc->status,
-          [ %{ $cc->{headers} } ],
-          [ $content ],
-      ];
-  };
-
-  if ($@) {
-      $res = [ 500, [ 'Content-Type' => 'text/plain' ], [ "<pre>$@</pre>" ] ];
-  }
-
-  return $res;
-}
-\end{lstlisting}
+\inputperl{day8-2.pl}
 
 That's very straightforward, especially when compared with
 \href{http://cpansearch.perl.org/src/BEPPU/Squatting-0.70/lib/Squatting/On/CGI.pm}{\module{Squat|ting::On::CGI}}.
@@ -650,13 +506,7 @@ HTTP headers from \lstinline!%ENV! would just work because that's what
 \module{CGI::Emulate::PSGI} tries to emulate. The original POD of
 \module{CGI::Emulate::PSGI} was illustrating it like:
 
-\begin{lstlisting}
-use CGI::Emulate::PSGI;
-CGI::Emulate::PSGI->handler(sub {
-    do "/path/to/foo.cgi";
-    CGI::initialize_globals() if &CGI::initialize_globals;
-});
-\end{lstlisting}
+\inputperl{day9-1.pl}
 %
 to run existing CGI application that may or may not use \module{CGI.pm} (\module{CGI.pm}
 caches lots of environment variables so it needs
@@ -670,10 +520,7 @@ is named
 \href{http://search.cpan.org/perldoc?CGI::Compile}{\module{CGI::Compile}} and
 should be best used combined with \module{CGI::Emulate::PSGI}.
 
-\begin{lstlisting}
-my $sub = CGI::Compile->compile("/path/to/script.cgi");
-my $app = CGI::Emulate::PSGI->handler($sub);
-\end{lstlisting}
+\inputperl{day9-2.pl}
 
 There's also
 \href{http://search.cpan.org/perldoc?Plack::App::CGIBin}{\module{Plack::App::CGIBin}}
@@ -726,12 +573,7 @@ middleware really simply but in a reusable fashion.
 Using Middleware components written with \module{Plack::Middleware} is easy, just
 wrap the original application with \lstinline!wrap! method:
 
-\begin{lstlisting}
-my $app = sub { [ 200, ... ] };
-
-use Plack::Middleware::StackTrace;
-$app = Plack::Middleware::StackTrace->wrap($app);
-\end{lstlisting}
+\inputperl{day10-1.pl}
 
 This example wraps the original application with StackTrace middleware
 (which is actually enabled
@@ -745,28 +587,13 @@ a beautiful HTML page} using \module{Devel::StackTrace::AsHTML}.
 Some other middleware components take parameters, in which case you can
 pass the parameters as a hash after \lstinline!$app!, like:
 
-\begin{lstlisting}
-my $app = sub { ... };
-
-use Plack::Middleware::MethodOverride;
-$app = Plack::Middleware::MethodOverride->wrap($app, header => 'X-Method');
-\end{lstlisting}
+\inputperl{day10-2.pl}
 
 Installing multiple middleware components is tedious especially since
 you need to \lstinline!use! those modules first, and we have a quick
 solution for that using a DSL style syntax.
 
-\begin{lstlisting}
-use Plack::Builder;
-my $app = sub { ... };
-
-builder {
-    enable "StackTrace";
-    enable "MethodOverride", header => 'X-Method';
-    enable "Deflater";
-    $app;
-};
-\end{lstlisting}
+\inputperl{day10-3.pl}
 
 We'll see more about \module{Plack::Builder} tomorrow.
 
@@ -779,22 +606,7 @@ wrapped application can be anything, which means you can
 your existing web application in the PSGI mode} and apply middleware
 components to it. For instance, with \module{CGI::Application}:
 
-\begin{lstlisting}
-use CGI::Application::PSGI;
-use WebApp;
-
-my $app = sub {
-    my $env = shift;
-    my $app = WebApp->new({ QUERY => CGI::PSGI->new($env) });
-    CGI::Application::PSGI->run($app);
-};
-
-use Plack::Builder;
-builder {
-    enable "Auth::Basic", authenticator => sub { $_[1] eq 'foobar' };
-    $app;
-};
-\end{lstlisting}
+\inputperl{day10-4.pl}
 
 This will enable the Basic authentication middleware to \module{CGI::Ap|pli|ca|tion}
 based application. You can do the same with
@@ -815,29 +627,13 @@ to make it much easier, and that is \module{Plack::Builder}.
 The way you use \module{Plack::Builder} is so easy. Just use the keywords
 \lstinline!builder! and \lstinline!enable!:
 
-\begin{lstlisting}
-my $app = sub { 
-    return [ 200, [], [ "Hello World" ] ];
-};
-
-use Plack::Builder;
-builder {
-    enable "JSONP";
-    enable "Auth::Basic", authenticator => sub { ... };
-    enable "Deflater";
-    $app;
-};
-\end{lstlisting}
+\inputperl{day11-1.pl}
 
 This takes the original application (\lstinline!$app!) and wraps it with
 Deflater, \module{Auth::Basic} and JSONP middleware components (inner to outer).
 So it's equivalent to:
 
-\begin{lstlisting}
-$app = Plack::Middleware::Deflater->wrap($app);
-$app = Plack::Middleware::Auth::Basic->wrap($app, authenticator => sub { });
-$app = Plack::Middleware::JSONP->wrap($app);
-\end{lstlisting}
+\inputperl{day11-2.pl}
 %
 but without lots of \lstinline!use!ing the module which is anti DRY.
 
@@ -856,9 +652,7 @@ application is inner.
 \module{Plack::Middleware::} prefix but in case you want to enable some other
 namespace, like \module{My|Fra|me|work::PSGI::MW::Foo}, you can say:
 
-\begin{lstlisting}
-enable "+MyFramework::PSGI::MW::Foo";
-\end{lstlisting}
+\inputperl{day11-3.pl}
 
 The key here is to use the plus (+) sign to indicate that it is a fully
 qualified class name.
@@ -893,11 +687,7 @@ else?}\label{hello-world-but-anyone-else}
 Throughout the advent calendar we most of the time use the simplest web
 application using the ``Hello World'' example, like
 
-\begin{lstlisting}
-my $app = sub {
-    return [ 200, [], [ "Hello World" ] ];
-};
-\end{lstlisting}
+\inputperl{day12-1.pl}
 %
 what about more complex examples, like you have multiple applications,
 each of which inherit from one of the web application frameworks, and
@@ -910,26 +700,13 @@ applications into one application, to dispatch requests to multiple
 applications using the URL path, or even with virtual host based
 dispatch.
 
-\begin{lstlisting}
-my $app1 = sub {
-    return [ 200, [], [ "Hello John" ] ];
-};
-
-my $app2 = sub {
-    return [ 200, [], [ "Hello Bob" ] ];
-};
-\end{lstlisting}
+\inputperl{day12-2.pl}
 
 So you have two apps, one is to say hi to John and another to Bob, and
 say if you want to run this two application on the same server. With
 \module{Plack::App::URLMap}, you can do this.
 
-\begin{lstlisting}
-use Plack::App::URLMap;
-my $app = Plack::App::URLMap->new;
-$app->mount("/john" => $app1);
-$app->mount("/bob"  => $app2);
-\end{lstlisting}
+\inputperl{day12-3.pl}
 
 There you go. Your app now dispatches all requests beginning with
 \lstinline!/john! to \lstinline!$app1! which says ``Hello John'' and
@@ -951,29 +728,14 @@ useful, so we decided to add to \module{Plack::Builder} DSL itself, which is
 again an inspiration by \module{Rack::Builder}, using the syntax
 \lstinline!mount!:
 
-\begin{lstlisting}
-use Plack::Builder;
-builder {
-    mount "/john" => $app1;
-    mount "/bob"  => builder {
-        enable "Auth::Basic", authenticator => ...;
-        $app2;
-    };
-};
-\end{lstlisting}
+\inputperl{day12-4.pl}
 
 Requests to \url{/john} is handled exactly the same way with the normal
 URLMap. But this example uses \lstinline!builder! for \url{/bob}, so it
 enables the basic authentication to display the ``Hello Bob'' page. This
 should be syntactically equivalent to:
 
-\begin{lstlisting}
-$app = Plack::App::URLMap->new;
-$app->mount("/john", $app1);
-
-$app2 = Plack::Middleware::Auth::Basic->wrap($app2, authenticator => ...);
-$app->mount("/bob",  $app2);
-\end{lstlisting}
+\inputperl{day12-5.pl}
 %
 but obviously, with less code to write and more obvious to understand
 what's going on.
@@ -985,30 +747,7 @@ framework applications on one server. Imagine you have three
 applications, ``Foo'' which is based on Catalyst, ``Bar'' which is based
 on \module{CGI::Application} and ``Baz'' which is based on Squatting. Do this:
 
-\begin{lstlisting}
-# Catalyst
-use Foo;
-my $app1 = Foo->psgi_app;
-
-# CGI::Application
-use Bar;
-use CGI::Application::PSGI;
-my $app2 = sub { 
-    my $app = Bar->new({ QUERY => CGI::PSGI->new(shift) });
-    CGI::Application::PSGI->run($app);
-};
-
-# Squatting
-use Baz 'On::PSGI';
-Baz->init;
-my $app3 = sub { Baz->psgi(shift) };
-
-builder {
-    mount "/foo" => $app1;
-    mount "/bar" => $app2;
-    mount "/baz" => $app3;
-};
-\end{lstlisting}
+\inputperl{day12-6.pl}
 
 And now you have three applications, each of which inherit from
 different web framework, running on the same server (via \program{plackup} or
@@ -1035,27 +774,7 @@ Perl's standard testing protocol
 \href{http://testanything.org/wiki/}{TAP} and
 \href{http://search.cpan.org/perldoc?Test::More}{\module{Test::More}}.
 
-\begin{lstlisting}
-use Plack::Test;
-use Test::More;
-use HTTP::Request;
-
-my $app = sub {
-    return [ 200, [ 'Content-Type', 'text/plain' ], [ "Hello" ] ];
-};
-
-test_psgi $app, sub {
-    my $cb = shift;
-    
-    my $req = HTTP::Request->new(GET => 'http://localhost/');
-    my $res = $cb->($req);
-    
-    is $res->code, 200;
-    is $res->content, "Hello";
-};
-
-done_testing;
-\end{lstlisting}
+\inputperl{day13-1.pl}
 
 Create or load PSGI application like usual (you can use
 \href{http://search.cpan.org/perldoc?Plack::Util}{\module{Plack::Util}}'s
@@ -1066,9 +785,7 @@ testing client.
 
 You can use the named parameters as well, like the following.
 
-\begin{lstlisting}
-test_psgi app => $app, client => sub { ... }
-\end{lstlisting}
+\inputperl{day13-2.pl}
 
 The client code takes a callback (\lstinline!$cb!), which you can pass
 an \module{HTTP::Request} object that would return \module{HTTP::Response} object, like
@@ -1085,15 +802,7 @@ This is not required, but recommended to use
 when you want to make an HTTP request, since it's more obvious and less
 code to write:
 
-\begin{lstlisting}
-use HTTP::Request::Common;
-
-test_psgi $app, sub {
-    my $cb = shift;
-    my $res = $cb->(GET "/");
-    # ...
-};
-\end{lstlisting}
+\inputperl{day13-3.pl}
 
 Notice that you can even omit the scheme and hostname, which would
 default to \url{http://localhost/} anyway.
@@ -1109,19 +818,14 @@ You can change this to live HTTP mode, by setting either a) the package
 variable \lstinline!$Plack::Test::Impl! or b) the environment variable
 \lstinline!PLACK_TEST_IMPL! to the string \lstinline!Server!.
 
-\begin{lstlisting}
-use Plack::Test;
-$Plack::Test::Impl = "Server";
-
-test_psgi ... # the same code
-\end{lstlisting}
+\inputperl{day13-4.pl}
 
 By using the environment variable, you don't really need to change the
-.t code:
+\file{.t} code:
 
-\begin{lstlisting}
-env PLACK_TEST_IMPL=Server prove -l t/test.t
-\end{lstlisting}
+\begin{shell}
+$ env PLACK_TEST_IMPL=Server prove -l t/test.t
+\end{shell}
 
 This will run the PSGI application using the Standalone server backend
 and uses \module{LWP::UserAgent} to send the live HTTP request. You don't need to
@@ -1138,18 +842,7 @@ frameworks that speaks PSGI. By
 your web application framework in PSGI mode}, you can also use
 \module{Plack::Test}:
 
-\begin{lstlisting}
-use Plack::Test;
-use MyCatalystApp;
-
-my $app = MyCatalystApp->psgi_app;
-
-test_psgi $app, sub {
-    my $cb = shift;
-    # ...
-};
-done_testing;
-\end{lstlisting}
+\inputperl{day13-5.pl}
 
 You can of course do the same thing against any frameworks that supports
 PSGI.
@@ -1180,20 +873,7 @@ Response}\label{use-plackrequest-and-response}
 \module{Plack::Request} is a wrapper around PSGI environment, and the code goes
 like this:
 
-\begin{lstlisting}
-use Plack::Request;
-
-my $app = sub {
-    my $req = Plack::Request->new(shift);
-    
-    my $name = $req->param('name');
-    my $res  = $req->new_response(200);
-    $res->content_type('text/html');
-    $res->content("<html><body>Hello World</body></html>");
-    
-    return $res->finalize;
-};
-\end{lstlisting}
+\inputperl{day14-1.pl}
 
 The only thing you need to change, if you're migrating from
 \module{HTTP::Engine}, is the first line of the application to create a
@@ -1276,19 +956,7 @@ Just like
 \href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{other
 middleware}, using \module{Auth::Basic} middleware is quite simple:
 
-\begin{lstlisting}
-use Plack::Builder;
-
-my $app = sub { ... };
-
-builder {
-    enable "Auth::Basic", authenticator => sub {
-        my($username, $password) = @_;
-        return $username eq 'admin' && $password eq 'foobar';
-    };
-    $app;
-};
-\end{lstlisting}
+\inputperl{day15-1.pl}
 
 This adds a basic authentication to your application \lstinline!$app!,
 and the user \emph{admin} can sign in with the password \emph{foobar}
@@ -1301,22 +969,7 @@ Since it's a callback based, adding another authentication system such
 as Kerberos would be pretty trivial and easy with modules such as
 \module{Authen::Simple}:
 
-\begin{lstlisting}
-use Plack::Builder;
-use Authen::Simple;
-use Authen::Simple::Kerberos;
-
-my $auth = Authen::Simple->new(
-    Authen::Simple::Kerberos->new(realm => ...),
-);
-
-builder {
-    enable "Auth::Basic", authenticator => sub {
-        $auth->authenticate(@_):
-    };
-    $app;
-};
-\end{lstlisting}
+\inputperl{day15-2.pl}
 
 The same way you can use lots of
 \href{http://search.cpan.org/search?query=authen+simple\&mode=all}{\module{Authen::Simple}
@@ -1328,25 +981,7 @@ URLMap allows you to compound multiple apps into one app, so combined
 with Auth middleware, you can run the same application in a auth
 vs.~non-auth mode, using different paths:
 
-\begin{lstlisting}
-use Plack::Builder;
-my $app = sub {
-    my $env = shift;
-    if ($env->{REMOTE_USER}) { 
-        # Authenticated
-    } else {
-        # Unauthenticated
-    }
-};
-
-builder {
-    mount "/private" => builder {
-        enable "Auth::Basic", authenticator => ...;
-        $app;
-    };
-    mount "/public" => $app;
-};
-\end{lstlisting}
+\inputperl{day15-3.pl}
 
 This way you run the same \lstinline!$app! in \url{/public} and
 \url{/private} paths, while \url{/private} requires a basic authentication
@@ -1375,29 +1010,11 @@ Assume your web application returns a JSON encoded data with the
 Content-Type \lstinline!application/json!, again with a simple inline
 PSGI application:
 
-\begin{lstlisting}
-use JSON;
-my $app = sub {
-    my $env = shift;
-    if ($env->{PATH_INFO} eq '/whatever.json') {
-        my $body = JSON::encode_json({
-            hello => 'world',
-        });
-        return [ 200, ['Content-Type', 'application/json'], [ $body ] ];
-    }
-    return [ 404, ['Content-Type', 'text/html'], ['Not Found']];
-};
-\end{lstlisting}
+\inputperl{day16-1.pl}
 
 Adding a JSONP support is easy using \module{Middleware::JSONP}:
 
-\begin{lstlisting}
-use Plack::Builder;
-builder {
-    enable "JSONP";
-    $app;
-};
-\end{lstlisting}
+\inputperl{day16-2.pl}
 
 So it's just one line! The middleware checks if the response content
 type is \lstinline!application/json! and if so, checks if there is a
@@ -1405,9 +1022,7 @@ type is \lstinline!application/json! and if so, checks if there is a
 \url{/whatever.json} continues to return the JSON but requests to
 \url{/whatever.json?callback=myCallback} would return:
 
-\begin{lstlisting}
-myCallback({"hello":"world"});
-\end{lstlisting}
+\inputperl{day16-3.pl}
 %
 with the Content-Type \lstinline!text/javascript!. Content-Length is
 automatically adjusted if there's any.
@@ -1421,31 +1036,12 @@ things that could be done in Plack middleware layer with no complexity.
 And of course, this JSONP middleware should work with any existing web
 frameworks that emits JSON output. So with Catalyst:
 
-\begin{lstlisting}
-package MyApp::View::JSON;
-use base qw( Catalyst::View::JSON );
-
-package MyApp::Controller::Foo;
-sub hello : Local {
-    my($self, $c) = @_;
-    $c->stash->{message} = 'Hello World!';
-    $c->forward('MyApp::View::JSON');
-}
-\end{lstlisting}
+\inputperl{day16-4.pl}
 
 And then using \module{Catalyst::Engine::PSGI} and \module{Plack::Builder}, you can add a
 JSONP support to this controller.
 
-\begin{lstlisting}
-use MyApp;
-my $app = MyApp->psgi_app;
-
-use Plack::Builder;
-builder {
-    enable "JSONP";
-    $app;
-};
-\end{lstlisting}
+\inputperl{day16-5.pl}
 
 Accidentally this
 \href{http://search.cpan.org/perldoc?Catalyst::View::JSON}{\module{Catalyst::View::JSON}}
@@ -1473,16 +1069,7 @@ Most frameworks come with this feature but with PSGI and Plack,
 frameworks don't need to implement this feature anymore. Just use the
 Static middleware.
 
-\begin{lstlisting}
-use Plack::Builder;
-
-my $app = sub { ... };
-
-builder {
-    enable "Static", path => qr!^/static!, root => './htdocs';
-    $app;
-}
-\end{lstlisting}
+\inputperl{day17-1.pl}
 
 This will intercept all requests beginning with \url{/static} and map that
 to the root directory \file{htdocs}. So requests to
@@ -1493,12 +1080,7 @@ Often you want to overlap or cofigure the directory names, so a request
 to the URL \url{/static/index.css} mapped to \file{./static-files/index.css},
 here's how to do that:
 
-\begin{lstlisting}
-builder {
-    enable "Static", path => sub { s!^/static/!! }, root => './static-files';
-    $app;
-}
-\end{lstlisting}
+\inputperl{day17-2.pl}
 
 The important thing here is to use a callback and a pattern match
 \lstinline!sub { s/// }! instead of a plain regular expression
@@ -1521,14 +1103,7 @@ use
 and URLMap} then using \module{App::File} with mount should be more intuitive.
 The previous example can be written like this:
 
-\begin{lstlisting}
-use Plack::Builder;
-
-builder {
-    mount "/static" => Plack::App::File->new(root => "./static-files");
-    mount "/" => $app;
-};
-\end{lstlisting}
+\inputperl{day17-3.pl}
 
 Your mileage may vary, but I think this one is more obvious. Static's
 callback based configuration allows you to write more complex regular
@@ -1571,15 +1146,7 @@ me.
 
 The Conditional middleware is an ultimate flexible solution to this:
 
-\begin{lstlisting}
-use Plack::Builder;
-
-builder {
-    enable_if { $_[0]->{REMOTE_ADDR} !~ /^192\.168\.0\./ }
-        "Auth::Basic", authenticator => ...;
-    $app;
-};
-\end{lstlisting}
+\inputperl{day18-1.pl}
 
 We added a new keyword to \module{Plack::Builder} \lstinline!enable_if!, which
 takes a block that gets evaluated in the request time (\lstinline!$_[0]!
@@ -1592,24 +1159,7 @@ runs a basic authentication otherwise.
 Conditional is implemented as a normal piece of middleware, and
 internally this is equivalent to:
 
-\begin{lstlisting}
-use Plack::Middleware::Conditional;
-use Plack::Middleware::Auth::Basic;
-
-my $app = sub { ... };
-
-$app = Plack::Middleware::Conditional->wrap($app,
-    builder => sub {
-        Plack::Middleware::Auth::Basic->wrap(
-            $_[0], authenticator => ...,
-        );
-    },
-    condition => sub {
-        my $env = shift;
-        $env->{REMOTE_ADDR} !~ /^192\.168\.0\./;
-    },
-);
-\end{lstlisting}
+\inputperl{day18-2.pl}
 
 But it's a little boring to write, so we added a DSL version, which I
 recommend to use :)
@@ -1642,27 +1192,7 @@ handlers}.
 \module{Plack::App::Cascade} allows you to composite multiple applications in
 order and runs until it returns non-404 responses.
 
-\begin{lstlisting}
-use Plack::App::Cascade;
-use Plack::App::File;
-use Plack::App::URLMap;
-
-my @paths = qw(
-    /home/www/static
-    /virtualhost/example.com/htdocs/static
-    /users/miyagawa/public_html/images
-);
-
-my $app = Plack::App::Cascade->new;
-for my $path (@paths) {
-    my $file = Plack::App::File->new(root => $path);
-    $app->add($file);
-}
-
-my $map = Plack::App::URLMap->new;
-$map->mount("/static" => $app);
-$map->to_app;
-\end{lstlisting}
+\inputperl{day19-1.pl}
 
 This application is mapped to \lstinline!/static! using URLMap, and all
 requests will try the three directories specified in \lstinline!@paths!
@@ -1672,23 +1202,7 @@ multiple directories like this.
 
 \section{Cascade different apps}\label{cascade-different-apps}
 
-\begin{lstlisting}
-use CatalystApp;
-CatalystApp->setup_engine('PSGI');
-my $app1 = sub { CatalystApp->run(@_) };
-
-use CGI::Application::PSGI;
-use CGIApp;
-my $app2 = sub {
-    my $app = CGIApp->new({
-        QUERY => CGI::PSGI->new($_[0]),
-    });
-    CGI::Application::PSGI->run($app);
-};
-
-use Plack::App::Cascade;
-Plack::App::Cascade->new(apps => [ $app1, $app2 ])->to_app;
-\end{lstlisting}
+\inputperl{day19-2.pl}
 
 This will create two applications, one with Catalyst and the other with
 \module{CGI::Application} and runs two applications in order. Suppose you have an
@@ -1809,9 +1323,9 @@ itself.
 
 When you access this application with the browser, the server dies with:
 
-\begin{lstlisting}
+\begin{shell}
 Not an ARRAY reference at lib/Plack/Util.pm line 145.
-\end{lstlisting}
+\end{shell}
 %
 or something similar. This is because the response format is invalid per
 the PSGI interface: the status code is not valid, HTTP headers is not an
@@ -1838,9 +1352,9 @@ $ plackup -e 'enable "Lint"; sub { return [ 0, { "Content-Type"=>"text/html" }, 
 and now requests for the application would give a nice stack trace
 saying:
 
-\begin{lstlisting}
+\begin{shell}
 status code needs to be an integer greater than or equal to 100 at ...
-\end{lstlisting}
+\end{shell}
 %
 since now the Lint middleware checks if the response in the valid PSGI
 format.
@@ -1876,12 +1390,7 @@ custom error page based on the response status code. ErrorDocument is
 exactly the middleware that does this, like Apache's ErrorDocument
 directive.
 
-\begin{lstlisting}
-builder {
-    enable "ErrorDocument", 500 => "/path/to/error.html";
-    $app;
-};
-\end{lstlisting}
+\inputperl{day22-1.pl}
 
 You can just map arbitrary error code to a static file path to be
 served. You can enable StackTrace middleware during the development and
@@ -1899,12 +1408,7 @@ the interface as Ruby's built-in Hash object. We didn't define it as
 part of the standard interface but stole the idea and actual
 implementation a lot.
 
-\begin{lstlisting}
- builder {
-     enable "Session", store => "File";
-     $app;
- };
-\end{lstlisting}
+\inputperl{day22-2.pl}
 
 By default Session will save the session in on-memory hash, which
 wouldn't work with the prefork (or multi process) servers. It's shipped
@@ -1918,15 +1422,7 @@ Session data is stored as a plain hash reference in
 frameworks with access to PSGI env hash can use this Session freely in
 the app by wrapping it with \module{Plack::Session} module, like in Tatsumaki:
 
-\begin{lstlisting}
- # Tatsumaki app
- sub get {
-     my $self = shift;
-     my $uid = $self->request->session->get('uid');
-     $self->request->session->set(last_access => time);
-     ...
- }
-\end{lstlisting}
+\inputperl{day22-3.pl}
 
 And the nice thing is that \emph{any} PSGI apps can share this session
 data as long as they use the same storage etc. Some existing framework
@@ -1949,12 +1445,7 @@ The panels include Timer (the request time), Memory (how is memory
 increased if there's any leaks), Request (Detailed request headers) and
 Responses (Response headers etc.) and so on.
 
-\begin{lstlisting}
- builder {
-     enable "Debug";
-     $app;
- };
-\end{lstlisting}
+\inputperl{day22-4.pl}
 
 Using it is so easy as this, and you an also pass the list of
 \lstinline!panels! to enable only certain panels or additional non
@@ -1977,16 +1468,7 @@ job.
 
 Anyway, \module{Plack::App::Proxy} is the middleware to do this:
 
-\begin{lstlisting}
-use Plack::App::Proxy;
-use Plack::Builder;
-
-my $app = Plack::App::Proxy->new(host => '192.168.0.2:8080')->to_app;
-
-builder {
-    mount "/app" => $app;
-};
-\end{lstlisting}
+\inputperl{day22-5.pl}
 
 Proxy middleware is developed by Lee Aylward on
 \href{http://github.com/leedo/Plack-App-Proxy}{GitHub}.
@@ -2014,21 +1496,7 @@ sides).
 
 A simple middleware that fakes HTTP user-agent would be like this:
 
-\begin{lstlisting}
-# Wrapped application
-my $app = sub {
-    my $env = shift;
-    my $who = $env->{HTTP_USER_AGENT} =~ /Mobile Safari/ ? 'iPhone' : 'non-iPhone';
-    return [ 200, ['Content-Type','text/html'], ["Hello $who"] ];
-};
-
-# Middleware to wrap $app
-my $mw = sub {
-    my $env = shift;
-    $env->{HTTP_USER_AGENT} .= " (Mobile Safari)";
-    $app->($env);
-};
-\end{lstlisting}
+\inputperl{day23-1.pl}
 
 The app would display ``Hello iPhone'' only if a request comes with
 iPhone browser (\emph{Mobile Safari}), but the middleware adds that
@@ -2036,13 +1504,13 @@ phrase to all incoming requests, so if you run this application and open
 the page with any browsers, you'll always see ``Hello iPhone''. And the
 default Access Log would say:
 
-\begin{lstlisting}
+\begin{shell}
 127.0.0.1 - - [23/Dec/2009 12:34:31] "GET / HTTP/1.1" 200 12 "-" "Mozilla/5.0 
 (Macintosh; U; Intel Mac OS X 10_6_2; en-us) AppleWebKit/531.21.8 (KHTML, like
 Gecko) Version/4.0.4 Safari/531.21.10 (Mobile Safari)"
-\end{lstlisting}
+\end{shell}
 
-You can see " (Mobile Safari)" is added to the tail of User-Agent
+You can see "(Mobile Safari)" is added to the tail of User-Agent
 string.
 
 \section{Make it a reusable
@@ -2054,20 +1522,7 @@ whip up then that's great, but you often want to make it generic enough
 or reusable in other applications too. Then you should use
 \module{Plack::Middleware}.
 
-\begin{lstlisting}
-package Plack::Middleware::FakeUserAgent;
-use strict;
-use parent qw(Plack::Middleware);
-use Plack::Util::Accessor qw(agent);
-
-sub call {
-    my($self, $env) = @_;
-    $env->{HTTP_USER_AGENT} = $self->agent;
-    $self->app->($env);
-};
-
-1;
-\end{lstlisting}
+\inputperl{day23-2.pl}
 
 That's it. All you have to do is to inherit from \module{Plack::Middleware} and
 defines options that your middleware would take, and implement
@@ -2076,14 +1531,7 @@ which is a wrapped application. This middleware is now compatible to
 \href{http://advent.plackperl.org/2009/12/day-11-using-plackbuilder.html}{\module{Plack::Builder}
 DSL} so you can say:
 
-\begin{lstlisting}
-use Plack::Builder;
-
-builder {
-    enable "FakeUserAgent", agent => "Mozilla/3.0 (MSIE 4.0)";
-    $app;
-};
-\end{lstlisting}
+\inputperl{day23-3.pl}
 %
 to fake all incoming requests as it comes with the good old Internet
 Explorer, and you can also use \lstinline!enable_if! to
@@ -2096,17 +1544,7 @@ The previous examples does pre-processing of PSGI request
 \lstinline!$env! hash, what to do about the response? It's almost the
 same:
 
-\begin{lstlisting}
-my $app = sub { ... };
-
-# Middleware to fake status code to 500
-my $mw = sub {
-    my $env = shift;
-    my $res = $app->($env);
-    $res->[0] = 500 unless $res->[2] == 200;
-    $res;
-};
-\end{lstlisting}
+\inputperl{day23-4.pl}
 
 This is an \emph{evil} middleware component that changes all the status
 code to 500 unless it's 200 OK. Not sure if there is any use for this
@@ -2119,22 +1557,7 @@ with such an interface. Dealing with this special callback interface in
 individual middleware is not efficient, so we have a special callback
 interface in \module{Plack::Middleware} to make this easy:
 
-\begin{lstlisting}
-package Plack::Middleware::BadStatusCode;
-use strict;
-use parent qw(Plack::Middleware);
-
-sub call {
-    my($self, $env) = @_;
-    my $res = $self->app->($env);
-    $self->response_cb($res, sub {
-        my $res = shift;
-        $res->[0] = 500 unless $res->[0] == 200;
-    });
-}
-
-1;
-\end{lstlisting}
+\inputperl{day23-5.pl}
 
 Pass the response \lstinline!$res! to \lstinline!response_cb! and set
 the callback to wrap the real response, and the method takes care of the
@@ -2149,23 +1572,16 @@ namespace, but if the middleware is too specific for your own needs, or
 works only with a particular application framework, then use whatever
 namespace, like:
 
-\begin{lstlisting}
-package MyFramework::Middleware::Foo;
-use parent qw(Plack::Middleware);
-\end{lstlisting}
+\inputperl{day23-6.pl}
 %
 and then use the + (plus) sign to indicate the fully qualified
 namespace,
 
-\begin{lstlisting}
-enable '+MyFramework::Middleware::Foo', ...;
-\end{lstlisting}
+\inputperl{day23-7.pl}
 %
 or use the non-DSL API,
 
-\begin{lstlisting}
-$app = MyFramework::Middleware::Foo->wrap($app, ...);
-\end{lstlisting}
+\inputperl{day23-8.pl}
 %
 and they should work just fine.
 

@@ -1,0 +1,2 @@
+enable '+MyFramework::Middleware::Foo', ...;
+

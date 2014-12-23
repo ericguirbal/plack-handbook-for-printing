@@ -1,0 +1,2 @@
+myCallback( { "hello" : "world" } );
+

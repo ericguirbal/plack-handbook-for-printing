@@ -145,6 +145,13 @@
   \IfFileExists{images/#1}{}{\immediate\write18{wget -O images/#1 "#2"}}%
 }
 
+\newcommand{\inputperl}[1]{%
+  \executeiffilenewer{codes/#1}{build/#1}%
+  {perltidy codes/#1 -pro=.perltidyrc -l=62 > build/#1}%
+  \lstinputlisting{build/#1}
+}
+
+
 \begin{document}
 
 \title{Plack Handbook}
