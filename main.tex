@@ -18,13 +18,19 @@
 \usepackage{listings}
 \lstset{
   basicstyle=\normalsize\ttfamily\lst@ifdisplaystyle\footnotesize\fi,
+  backgroundcolor=\color{black!6},
+  rulecolor=\color{black!25},
+  frame=single,
   breaklines=true,
   breakatwhitespace=true,
   keepspaces=true,
   columns=fixed,
   showspaces=false,
   showstringspaces=false,
-  xleftmargin=\parindent,
+  xleftmargin=3.4pt,
+  xrightmargin=3.4pt,
+  framerule=0.4pt,
+  belowskip=\smallskipamount,
   language=Perl
 }
 
@@ -147,7 +153,7 @@
 
 \newcommand{\inputperl}[1]{%
   \executeiffilenewer{codes/#1}{build/#1}%
-  {perltidy codes/#1 -pro=.perltidyrc -l=62 > build/#1}%
+  {perltidy codes/#1 -pro=.perltidyrc -l=63 > build/#1}%
   \lstinputlisting{build/#1}
 }
 
