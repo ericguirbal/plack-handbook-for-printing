@@ -68,8 +68,9 @@
   \if@twocolumn\hbox{}\newpage\fi\fi\fi}
 \makeatother
 
-\PassOptionsToPackage{hyphens}{url}
 \usepackage{hyperref}
+\let\urlfromhyperref\url
+\PassOptionsToPackage{hyphens}{url}
 
 \titleformat{\chapter}[display]
     {\normalfont\rmfamily\filcenter}
@@ -93,10 +94,9 @@
 % Create a footnote for each href link
 \let\oldhref\href
 \renewcommand{\href}[2]{%
-  \oldhref{#1}{#2}%
   % Every Perl developper knows where to find documentation for Perl modules
   % so there is no need to waste space in the footnote
-  \IfSubStr{#1}{cpan.org}{}{\footnote{\url{#1}}}
+  \IfSubStr{#1}{cpan.org}{#2}{#2\footnote{\urlfromhyperref{#1}}}%
 }
 
 \usepackage[strict]{changepage}
@@ -112,6 +112,7 @@
 \newcommand*{\sourceFont}{\ttfamily\footnotesize}
 \newcommand*{\inlineSourceFont}{\normalsize\ttfamily}
 \newcommand*{\urlFont}{\itshape}
+\renewcommand*{\UrlFont}{\itshape}
 \newcommand*{\fileFont}{\itshape}
 \newcommand*{\moduleFont}{\ttfamily}
 \newcommand*{\programFont}{\itshape}
