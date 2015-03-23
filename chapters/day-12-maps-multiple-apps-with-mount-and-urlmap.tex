@@ -1,0 +1,75 @@
+\chapter{Maps multiple apps with mount and URLMap}
+\label{day-12-maps-multiple-apps-with-mount-and-urlmap}
+
+\section{Hello World! but anyone
+else?}\label{hello-world-but-anyone-else}
+
+Throughout the advent calendar we most of the time use the simplest web
+application using the ``Hello World'' example, like
+
+\inputperl{day12-1.pl}
+%
+what about more complex examples, like you have multiple applications,
+each of which inherit from one of the web application frameworks, and
+use one of apache magic like mod\_alias etc.
+
+\section{Plack::App::URLMap}\label{plackappurlmap}
+
+\module{Plack::App::URLMap} allows you to \emph{composite} multiple PSGI
+applications into one application, to dispatch requests to multiple
+applications using the URL path, or even with virtual host based
+dispatch.
+
+\inputperl{day12-2.pl}
+
+So you have two apps, one is to say hi to John and another to Bob, and
+say if you want to run this two application on the same server. With
+\module{Plack::App::URLMap}, you can do this.
+
+\inputperl{day12-3.pl}
+
+There you go. Your app now dispatches all requests beginning with
+\lstinline!/john! to \lstinline!$app1! which says ``Hello John'' and
+\lstinline!/bob! to \lstinline!$app2!, which is to say ``Hello Bob''. As
+a result, all requests to unmapped paths, like the root (\url{/}) gives
+you 404.
+
+The environment variables such as \lstinline!PATH_INFO! and
+\lstinline!SCRIPT_NAME! are automatically adjusted so it just works like
+when your application is mounted using Apache's mod\_alias or CGI
+scripts. Your application framework should always use
+\lstinline!PATH_INFO! to dispatch requests, and concatenate with
+\lstinline!SCRIPT_NAME! to build links.
+
+\section{mount in DSL}\label{mount-in-dsl}
+
+This \lstinline!mount! interface with \module{Plack::App::URLMap} is quite
+useful, so we decided to add to \module{Plack::Builder} DSL itself, which is
+again an inspiration by \module{Rack::Builder}, using the syntax
+\lstinline!mount!:
+
+\inputperl{day12-4.pl}
+
+Requests to \url{/john} is handled exactly the same way with the normal
+URLMap. But this example uses \lstinline!builder! for \url{/bob}, so it
+enables the basic authentication to display the ``Hello Bob'' page. This
+should be syntactically equivalent to:
+
+\inputperl{day12-5.pl}
+%
+but obviously, with less code to write and more obvious to understand
+what's going on.
+
+\section{Multi tenant frameworks}\label{multi-tenant-frameworks}
+
+Of course you can use this URLMap and mount API to run multiple
+framework applications on one server. Imagine you have three
+applications, ``Foo'' which is based on Catalyst, ``Bar'' which is based
+on \module{CGI::Application} and ``Baz'' which is based on Squatting. Do this:
+
+\inputperl{day12-6.pl}
+
+And now you have three applications, each of which inherit from
+different web framework, running on the same server (via \program{plackup} or
+other \module{Plack::Handler::*} implementations) mapped on different paths.
+

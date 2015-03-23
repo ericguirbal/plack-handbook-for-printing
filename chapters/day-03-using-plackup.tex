@@ -1,0 +1,80 @@
+\chapter{Using plackup}\label{day-3-using-plackup}
+
+In the
+\href{http://advent.plackperl.org/2009/12/day-2-hello-world.html}{Day 2}
+article I used the \program{plackup} command to run the Hello World PSGI
+application.
+
+\program{plackup} is a command line launcher of PSGI applications inspired by
+Rack's rackup command. It can be used to run any PSGI application saved
+in a \file{.psgi} file with one of the PSGI web server backends using Plack
+handlers. The usage is simple: just pass a \file{.psgi} file path to the
+command:
+
+\begin{shell}
+$ plackup hello.psgi
+HTTP::Server::PSGI: Accepting connections at http://0:5000/
+\end{shell}
+
+You can actually omit the filename if you're trying to run the file
+named \file{app.psgi} in the current directory.
+
+The default backend is chosen using one of the following methods:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  If the environment variable \lstinline!PLACK_SERVER! is set it is
+  used.
+\item
+  If some environment specific variable like
+  \lstinline!GATEWAY_INTERFACE! or \lstinline!FCGI_ROLE! is set the
+  backend for CGI or FCGI is used accordingly.
+\item
+  If the loaded \lstinline!.psgi! file uses a specific event module like
+  \module{Any|Event}, \module{Co|ro} or \module{POE} the equivalent and most appropriate backend is
+  chosen automatically.
+\item
+  Otherwise, fallback to the default ``Standalone'' backend implemented
+  in the \module{HTTP::Ser|ver::PSGI} module.
+\end{itemize}
+
+You can also specify the backend yourself from the command line using
+the \switch{-s} or \switch{{-}{-}server} switch:
+
+\begin{shell}
+$ plackup -s Starman hello.psgi
+\end{shell}
+
+By default the \program{plackup} command enables three middleware components to
+aid development: \module{Lint}, \module{AccessLog}, and \module{StackTrace}. You can disable them
+with the \switch{-E} (or \switch{{-}{-}environment}) switch:
+
+\begin{shell}
+$ plackup -E production -s Starman hello.psgi
+\end{shell}
+
+In the case that you really want to use the \lstinline!development!
+Plack environment but want to disable the default middleware there is
+the \switch{{-}{-}no-default-middleware} option.
+
+Other command line switches can be passed to the server. You can specify
+the server listen port with:
+
+\begin{shell}
+$ plackup -s Starlet --host 127.0.0.1 --port 8080 hello.psgi
+Plack::Handler::Starlet: Accepting connections at http://127.0.0.1:8080/
+\end{shell}
+
+or specify the unix domain socket the FCGI backend should listen on
+with:
+
+\begin{shell}
+$ plackup -s FCGI --listen /tmp/fcgi.sock app.psgi
+\end{shell}
+
+For more options for \program{plackup}, run \lstinline!perldoc plackup! from the
+command line. You'll see more \program{plackup} options and hacks tomorrow as
+well.
+
+

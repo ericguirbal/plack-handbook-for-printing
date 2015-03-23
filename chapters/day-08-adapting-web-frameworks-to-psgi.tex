@@ -1,0 +1,87 @@
+\chapter{Adapting web frameworks to PSGI}\label{day-8-adapting-web-frameworks-to-psgi}
+
+The biggest benefit of PSGI for web application framework developers is
+that once you adapt your framework to run on PSGI you can forget and
+throw away everything else that you needed to deal with to, say, handle
+the differences between a bunch of FastCGI servers.
+
+Similarly, if you have a large scale web application, open source or
+proprietary, you probably have your own web application framework (or a
+base class or the like).
+
+Today's entry discusses how to convert existing web application
+frameworks to the PSGI interface.
+
+\section{CGI.pm based framework}\label{cgi.pm-based-framework}
+
+In Day 7 we saw how to run a \module{CGI::Application} based application in PSGI
+using \module{CGI::Application::PSGI}. \module{CGI::Application}, as the name suggests,
+uses \module{CGI.pm}, so using \module{CGI::PSGI} instead and defining a new runner class
+is the easiest way to go.
+
+\inputperl{day8-1.pl}
+
+That's quite simple, isn't it? \module{CGI::Application}'s \lstinline!run()!
+method usually returns the whole output, including HTTP headers and
+content body. As you can see, the module has a gross hack to disable the
+header generation since you can use the \lstinline!psgi_header! method
+of \module{CGI::PSGI} to generate the status code and HTTP headers as an array
+ref.
+
+I've implemented PSGI adapters for
+\href{http://search.cpan.org/perldoc?HTML::Mason}{Mason} and
+\href{http://search.cpan.org/perldoc?Maypole}{Maypole} and the code
+pretty much all looked alike:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Create \module{CGI::PSGI} out of \lstinline!$env! and set that instead of the
+  default \module{CGI.pm} instance.
+\item
+  Disable HTTP header generation if needed.
+\item
+  Run the app main dispatcher.
+\item
+  Extract the HTTP headers to be sent, use \lstinline!psgi_header! to
+  generate the status and headers.
+\item
+  Extract the response body (content).
+\end{itemize}
+
+\section{Adapter based framework}\label{adapter-based-framework}
+
+If the framework in question already uses adapter based approaches to
+abstract server environments it should be much easier to adapt to PSGI
+by reusing most of the CGI adapter code. Here's the code to adapt
+\href{http://search.cpan.org/perldoc?Squatting}{Squatting} to PSGI.
+Squatting uses the \module{Squatting::On::*} namespace to adapt to environments
+like mod\_perl, FastCGI, or even other frameworks like Catalyst or
+\module{HTTP::Engine}. It was extremely easy to write
+\href{http://search.cpan.org/perldoc?Squatting::On::PSGI}{\module{Squatting::On::PSGI}}:
+
+\inputperl{day8-2.pl}
+
+That's very straightforward, especially when compared with
+\href{http://cpansearch.perl.org/src/BEPPU/Squatting-0.70/lib/Squatting/On/CGI.pm}{\module{Squat|ting::On::CGI}}.
+It's almost a line-by-line copy (with some adjustment) using
+\module{Plack::Request} to parse parameters instead of \module{CGI.pm}.
+
+Similarly, Catalyst uses the \module{Catalyst::Engine} abstraction and
+\href{http://search.cpan.org/perldoc?Catalyst::Engine::PSGI}{\module{Ca|ta|lyst::En|gi|ne::PSGI}}
+is the adapter to run Catalyst on PSGI, where most of the code is copied
+from CGI.
+
+\section{mod\_perl centric
+frameworks}\label{modux5fperl-centric-frameworks}
+
+Some frameworks are centered around mod\_perl's API, in which case we
+can't use the approaches we've seen here. Instead, you should probably
+start by mocking \module{Apache::Request} APIs using a fake/mock object. Patric
+Donelan, a WebGUI developer, explains his approach to make a
+mod\_perl-like API in
+\href{http://blog.patspam.com/2009/plack-roundup-at-sf-pm}{his blog
+post}. The
+\href{http://github.com/pdonelan/webgui/blob/plebgui/lib/WebGUI/Session/Plack.pm}{mock
+request class linked} is a good place to start.
+

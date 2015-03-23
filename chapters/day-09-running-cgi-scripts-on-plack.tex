@@ -1,0 +1,52 @@
+\chapter{Running CGI scripts on Plack}\label{day-9-running-cgi-scripts-on-plack}
+
+For the last couple of days we've been talking about how to convert
+existing CGI based applications to PSGI, and then run them as a PSGI
+application. Today we will show you the ultimate way to run \emph{any}
+CGI scripts as a PSGI application, most of the time unmodified.
+
+\href{http://search.cpan.org/perldoc?CGI::PSGI}{\module{CGI::PSGI}} is a subclass
+of \module{CGI.pm} to allow you a very easy migration from \module{CGI.pm} with only
+\emph{a few lines of code changes} to run it on PSGI environment. But
+what about a messy or legacy CGI script that just prints to STDOUT a lot
+and is not easy to fix?
+
+\href{http://search.cpan.org/perldoc?CGI::Emulate::PSGI}{\module{CGI::Emulate::PSGI}}
+is a module to run any CGI based perl program in a PSGI environment.
+Whatever messy/old script that prints stuff to STDOUT or directly reads
+HTTP headers from \lstinline!%ENV! would just work because that's what
+\module{CGI::Emulate::PSGI} tries to emulate. The original POD of
+\module{CGI::Emulate::PSGI} was illustrating it like:
+
+\inputperl{day9-1.pl}
+%
+to run existing CGI application that may or may not use \module{CGI.pm} (\module{CGI.pm}
+caches lots of environment variables so it needs
+\lstinline!initialize_globals()! call to clear out the previous request
+variables).
+
+A few days ago on my flight from San Francisco to London to attend
+London Perl Workshop I was hacking on something more intelligent, that
+is to take any CGI scripts and compiles it into a subroutine. The module
+is named
+\href{http://search.cpan.org/perldoc?CGI::Compile}{\module{CGI::Compile}} and
+should be best used combined with \module{CGI::Emulate::PSGI}.
+
+\inputperl{day9-2.pl}
+
+There's also
+\href{http://search.cpan.org/perldoc?Plack::App::CGIBin}{\module{Plack::App::CGIBin}}
+Plack application to run existing CGI scripts written in Perl as PSGI
+applications, suppose you have bunch of CGI scripts in
+\lstinline!/path/to/cgi-bin!, you'll run the server with:
+
+\begin{shell}
+$ plackup -MPlack::App::CGIBin -e 'Plack::App::CGIBin->new(root => "/path/to/cgi-bin"))'
+\end{shell}
+
+And that will mount the path \url{/path/to/cgi-bin}, so suppose
+you have \file{foo.pl} in that directory, you can access
+\url{http://localhost:5000/foo.pl} to run the CGI application as a PSGI over
+the \program{plackup}, just like the scripts running on Apache mod\_perl Registry
+mechanism.
+

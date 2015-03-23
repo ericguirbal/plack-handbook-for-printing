@@ -1,0 +1,104 @@
+\chapter{Write your own middleware}
+\label{day-23-write-your-own-middleware}
+
+Let's finish up this middleware discovery with ``Do It Yourself''
+tutorial now.
+
+\section{Writing Middleware}\label{writing-middleware}
+
+PSGI middleware behaves like a normal PSGI application but wraps the
+original PSGI application, so from the server it looks like an
+application but from an application it looks like a server (plays both
+sides).
+
+A simple middleware that fakes HTTP user-agent would be like this:
+
+\inputperl{day23-1.pl}
+
+The app would display ``Hello iPhone'' only if a request comes with
+iPhone browser (\emph{Mobile Safari}), but the middleware adds that
+phrase to all incoming requests, so if you run this application and open
+the page with any browsers, you'll always see ``Hello iPhone''. And the
+default Access Log would say:
+
+\begin{shell}
+127.0.0.1 - - [23/Dec/2009 12:34:31] "GET / HTTP/1.1" 200 12 "-" "Mozilla/5.0 
+(Macintosh; U; Intel Mac OS X 10_6_2; en-us) AppleWebKit/531.21.8 (KHTML, like
+Gecko) Version/4.0.4 Safari/531.21.10 (Mobile Safari)"
+\end{shell}
+
+You can see "(Mobile Safari)" is added to the tail of User-Agent
+string.
+
+\section{Make it a reusable
+Middleware}\label{make-it-a-reusable-middleware}
+
+So that was a good example of writing your own middleware in
+\file{.psgi}. If it is one-time middleware that you can quickly
+whip up then that's great, but you often want to make it generic enough
+or reusable in other applications too. Then you should use
+\module{Plack::Middleware}.
+
+\inputperl{day23-2.pl}
+
+That's it. All you have to do is to inherit from \module{Plack::Middleware} and
+defines options that your middleware would take, and implement
+\lstinline!call! method that would delegate to \lstinline!$self->app!
+which is a wrapped application. This middleware is now compatible to
+\href{http://advent.plackperl.org/2009/12/day-11-using-plackbuilder.html}{\module{Plack::Builder}
+DSL} so you can say:
+
+\inputperl{day23-3.pl}
+%
+to fake all incoming requests as it comes with the good old Internet
+Explorer, and you can also use \lstinline!enable_if! to
+\href{http://advent.plackperl.org/2009/12/day-18-load-middleware-conditionally.html}{conditionally
+enable} this middleware.
+
+\section{Post process requests}\label{post-process-requests}
+
+The previous examples does pre-processing of PSGI request
+\lstinline!$env! hash, what to do about the response? It's almost the
+same:
+
+\inputperl{day23-4.pl}
+
+This is an \emph{evil} middleware component that changes all the status
+code to 500 unless it's 200 OK. Not sure if there is any use for this
+but it's simple enough for a quick example.
+
+Because some servers implement special
+\href{http://bulknews.typepad.com/blog/2009/10/psgiplack-streaming-is-now-complete.html}{streaming
+interface} to delay HTTP response, this middleware doesn't really work
+with such an interface. Dealing with this special callback interface in
+individual middleware is not efficient, so we have a special callback
+interface in \module{Plack::Middleware} to make this easy:
+
+\inputperl{day23-5.pl}
+
+Pass the response \lstinline!$res! to \lstinline!response_cb! and set
+the callback to wrap the real response, and the method takes care of the
+direct response and delayed response.
+
+\section{Namespaces}\label{namespaces}
+
+In this example we use \module{Plack::Middleware} namespace to make middleware,
+but it doesn't really have to be. If you think your middleware is
+generic enough for all PSGI apps can benefit, feel free to use the
+namespace, but if the middleware is too specific for your own needs, or
+works only with a particular application framework, then use whatever
+namespace, like:
+
+\inputperl{day23-6.pl}
+%
+and then use the + (plus) sign to indicate the fully qualified
+namespace,
+
+\inputperl{day23-7.pl}
+%
+or use the non-DSL API,
+
+\inputperl{day23-8.pl}
+%
+and they should work just fine.
+

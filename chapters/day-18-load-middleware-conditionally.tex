@@ -1,0 +1,54 @@
+\chapter{Load middleware conditionally}
+\label{day-18-load-middleware-conditionally}
+
+I've introduced a couple of middleware components. Some of them are
+useful and could be enabled globally, while others might be better
+enabled on certain conditions. Today we'll talk about a solution to
+this.
+
+\section{Load middleware
+conditionally}\label{load-middleware-conditionally}
+
+Conditional middleware is a super (or meta) middleware that takes one
+middleware and enable that middleware based on a runtime condition.
+Let's take some examples:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  You want to enable
+  \href{http://advent.plackperl.org/2009/12/day-16-adding-jsonp-support-to-your-app.html}{JSONP
+  middleware} only if the path begins with /public
+\item
+  You don't want to enable
+  \href{http://advent.plackperl.org/2009/12/day-15-authenticate-your-app-with-middleware.html}{Basic
+  Auth} if the request comes from local IP
+\end{itemize}
+
+We investigated how they deal with situations like this in WSGI and
+Rack, but couldn't find a generic solution, and they mostly just
+implement options to individual component, which did not look cool for
+me.
+
+\section{Middleware::Conditional}\label{middlewareconditional}
+
+The Conditional middleware is an ultimate flexible solution to this:
+
+\inputperl{day18-1.pl}
+
+We added a new keyword to \module{Plack::Builder} \lstinline!enable_if!, which
+takes a block that gets evaluated in the request time (\lstinline!$_[0]!
+there is the \lstinline!$env! hash) and if the block returns true, run
+the wrapped application but otherwise pass through.
+
+This example code examines if the request comes from a local network and
+runs a basic authentication otherwise.
+
+Conditional is implemented as a normal piece of middleware, and
+internally this is equivalent to:
+
+\inputperl{day18-2.pl}
+
+But it's a little boring to write, so we added a DSL version, which I
+recommend to use :)
+

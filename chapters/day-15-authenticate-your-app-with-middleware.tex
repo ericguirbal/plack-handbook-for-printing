@@ -1,0 +1,79 @@
+\chapter{Authenticate your app with Middleware}
+\label{day-15-authenticate-your-app-with-middleware}
+
+There're lots of Plack middleware components out there, whether in Plack
+core distribution as well as separate distributions on CPAN. While I've
+been writing this Plack advent calendar lots of people have shown their
+interest and taken ideas out of my wishlist.
+
+From today we'll introduce some of the nice middleware components that
+you can use quickly to enhance any of your PSGI ready applications.
+
+\section{Basic authentication}\label{basic-authentication}
+
+Since Plack middleware wraps an application, the best thing it can do is
+pre-process or post-process to do things around HTTP layers. Today let's
+talk about the Basic Authentication.
+
+Adding a basic authentication can be done in multiple ways: you can do
+that in the web application framework layer if it's supported in your
+framework. In case of Catalyst it's
+\href{http://search.cpan.org/perldoc?Catalyst::Authentication::Credential::HTTP}{\module{Catalyst::Authentication::Credential::HTTP}}.
+Just like other Catalyst tools, it allows you to configure the
+authentication from simple to very complex, by using credential (how to
+authenticate: basic and/or digest) and store (how to authorize username
+and passwords).
+
+Otherwise you can do the authentication in the web server layer. For
+instance if you run your application with Apache and mod\_perl, using
+Apache's default mod\_auth module to authenticate is pretty easy and
+handy for development, while it limits the ability to share ``how to
+authenticate users'' since usually you need to write your custom module
+to do things like database backed authentication.
+
+Plack middleware allows web application frameworks to share such a
+functionality, mostly with a pretty simple Perl callback system, and
+\module{Plack::Middleware::Auth::Basic} is to do this for Basic authentication.
+And this is why most Plack standalone servers do not have an
+authentication system: it's best implemented as a middleware component.
+
+\section{Using
+Plack::Middleware::Auth::Basic}\label{using-plackmiddlewareauthbasic}
+
+Just like
+\href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{other
+middleware}, using \module{Auth::Basic} middleware is quite simple:
+
+\inputperl{day15-1.pl}
+
+This adds a basic authentication to your application \lstinline!$app!,
+and the user \emph{admin} can sign in with the password \emph{foobar}
+and nobody else. The successful signed-in user gets
+\lstinline!REMOTE_USER! set in PSGI \lstinline!$env! hash so it can be
+used in the applications and is logged using the standard AccessLog
+middleware.
+
+Since it's a callback based, adding another authentication system such
+as Kerberos would be pretty trivial and easy with modules such as
+\module{Authen::Simple}:
+
+\inputperl{day15-2.pl}
+
+The same way you can use lots of
+\href{http://search.cpan.org/search?query=authen+simple\&mode=all}{\module{Authen::Simple}
+backends} with small changes.
+
+\section{With URLMap}\label{with-urlmap}
+
+URLMap allows you to compound multiple apps into one app, so combined
+with Auth middleware, you can run the same application in a auth
+vs.~non-auth mode, using different paths:
+
+\inputperl{day15-3.pl}
+
+This way you run the same \lstinline!$app! in \url{/public} and
+\url{/private} paths, while \url{/private} requires a basic authentication
+and \url{/public} doesn't. (Inlining \lstinline!$env->{REMOTE_USER}!, or
+whatever application logic in \file{.psgi} is not really recommended -- I just
+used it to explain it in an obvious way)
+

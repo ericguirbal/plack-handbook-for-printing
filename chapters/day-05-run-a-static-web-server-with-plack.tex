@@ -1,0 +1,49 @@
+\chapter{Run a static web server with Plack}\label{day-5-run-a-static-web-server-with-plack}
+
+The Plack distribution comes with some ready made PSGI applications in
+the \module{Plack::App} namespace. Some of them are pretty handy, for instance
+\href{http://search.cpan.org/perldoc?Plack::App::File}{\module{Plack::App::File}}
+and
+\href{http://search.cpan.org/perldoc?Plack::App::Directory}{\module{Plack::App::Directory}}.
+
+\module{Plack::App::File} translates a request path like
+\url{/foo/bar.html} into a local file like
+\url{/path/to/htdocs/foo/bar.html}, opens the file handle, and
+passes it back as a PSGI response. It basically does what a static web
+server like lighttpd, nginx or Apache does.
+
+\module{Plack::App::Directory} is a wrapper around \module{Plack::App::File} that gives a
+directory index, just like
+\href{http://httpd.apache.org/docs/2.0/mod/mod_autoindex.html}{Apache's
+mod\_autoindex} does.
+
+Using these applications is easy. Just write a \file{.psgi} file like this:
+
+\inputperl{day5-1.pl}
+%
+and run it with \program{plackup}:
+
+\begin{shell}
+$ plackup file.psgi
+\end{shell}
+
+Now you can access any file under your \url{~/public_html} with
+the URL \url{http://localhost:5000/somefile.html}
+
+You can also use \module{Plack::App::Directory}. This time let's run it with just
+the \program{plackup} command without a \file{.psgi} file:
+
+\begin{shell}
+$ plackup -MPlack::App::Directory -e 'Plack::App::Directory->new(root => "$ENV{HOME}/Sites")'
+HTTP::Server::PSGI: Accepting connections at http://0:5000/
+\end{shell}
+
+The \program{plackup} command, like the perl command, accepts flags like
+\switch{-I} (include path), \switch{-M} (modules to load), and
+\switch{-e} (the code to eval), so it's easy to load these
+\module{Plack::App::*} applications without ever touching a \file{.psgi} file!
+
+There are a couple of other \module{Plack::App} applications in the Plack
+distribution.
+
+

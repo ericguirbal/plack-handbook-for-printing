@@ -1,0 +1,62 @@
+\chapter{Serving static files from your application}
+\label{day-17-serving-static-files-from-your-application}
+
+On
+\href{http://advent.plackperl.org/2009/12/day-5-run-a-static-file-web-server-with-plack.html}{day
+5} we talked about serving files from the current directory using
+\program{plackup}. Now that we've learned how to
+\href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{use
+middleware} and
+\href{http://advent.plackperl.org/2009/12/day-12-maps-multiple-apps-with-mount-and-urlmap.html}{compound
+multiple applications with URLMap} it's extremely trivial to add a
+functionality you definitely need when developing an application:
+serving static files.
+
+\section{Serving files from a certain
+path}\label{serving-files-from-a-certain-path}
+
+Most frameworks come with this feature but with PSGI and Plack,
+frameworks don't need to implement this feature anymore. Just use the
+Static middleware.
+
+\inputperl{day17-1.pl}
+
+This will intercept all requests beginning with \url{/static} and map that
+to the root directory \file{htdocs}. So requests to
+\url{/static/images/foo.jpg} will result in serving a file
+\url{./htdocs/static/images/foo.jpg}.
+
+Often you want to overlap or cofigure the directory names, so a request
+to the URL \url{/static/index.css} mapped to \file{./static-files/index.css},
+here's how to do that:
+
+\inputperl{day17-2.pl}
+
+The important thing here is to use a callback and a pattern match
+\lstinline!sub { s/// }! instead of a plain regular expression
+(\lstinline!qr!). The callback is tested against a request path and if
+it matches, the value of \lstinline!$_! is being used as a request path.
+So in this example we tested to see if the request begins with
+\url{/static/} and in that case, strip off that part, and map the files
+under \file{./static-files/}.
+
+As a result, \url{/static/foo.jpg} would become
+\file{./static-files/foo.jpg}. All requests not matching the pattern match
+just passes through to the original \lstinline!$app!.
+
+\section{Do it your own with URLMap and
+App::File}\label{do-it-your-own-with-urlmap-and-appfile}
+
+Just like Perl there's more than one way to do it. When you grok how to
+use
+\href{http://advent.plackperl.org/2009/12/day-12-maps-multiple-apps-with-mount-and-urlmap.html}{mount
+and URLMap} then using \module{App::File} with mount should be more intuitive.
+The previous example can be written like this:
+
+\inputperl{day17-3.pl}
+
+Your mileage may vary, but I think this one is more obvious. Static's
+callback based configuration allows you to write more complex regular
+expression, which you can't do with URLMap and mount, so choose
+whichever fits your need.
+

@@ -1,0 +1,94 @@
+\chapter{use Plack::Test to test your application}
+\label{day-13-use-placktest-to-test-your-application}
+
+\section{Testing}\label{testing}
+
+There are many ways to test web applications, either with a live server
+or using a mock request technique. Some web application frameworks allow
+you to write an unit test using one of those methods, but the way you
+write tests differ per framework of your choice.
+
+\module{Plack::Test} gives you \emph{a unified interface} to test \emph{any} web
+applications and frameworks that is compatible to PSGI using \emph{both}
+mock request and live HTTP server.
+
+\section{Using Plack::Test}\label{using-placktest}
+
+Using \module{Plack::Test} is pretty simple and it's of course compatible to the
+Perl's standard testing protocol
+\href{http://testanything.org/wiki/}{TAP} and
+\href{http://search.cpan.org/perldoc?Test::More}{\module{Test::More}}.
+
+\inputperl{day13-1.pl}
+
+Create or load PSGI application like usual (you can use
+\href{http://search.cpan.org/perldoc?Plack::Util}{\module{Plack::Util}}'s
+\lstinline!load_psgi! function if you want to load an app from a
+\file{.psgi} file), and call \lstinline!test_psgi! function to test
+the application. The second argument is a callback that acts as a
+testing client.
+
+You can use the named parameters as well, like the following.
+
+\inputperl{day13-2.pl}
+
+The client code takes a callback (\lstinline!$cb!), which you can pass
+an \module{HTTP::Request} object that would return \module{HTTP::Response} object, like
+normal \module{LWP::UserAgent} would do, and you can make as many requests as you
+want, and test various attributes and response details.
+
+Save that code as \file{.t} file and use the tool such as
+\lstinline!prove! to run the tests.
+
+\section{use HTTP::Request::Common}\label{use-httprequestcommon}
+
+This is not required, but recommended to use
+\href{http://search.cpan.org/perldoc?HTTP::Request::Common}{\module{HTTP::Request::Common}}
+when you want to make an HTTP request, since it's more obvious and less
+code to write:
+
+\inputperl{day13-3.pl}
+
+Notice that you can even omit the scheme and hostname, which would
+default to \url{http://localhost/} anyway.
+
+\section{Run in a server/mock mode}\label{run-in-a-servermock-mode}
+
+By default the \lstinline!test_psgi! function's callback runs as a
+\emph{Mock HTTP} request mode, turning a \module{HTTP::Request} object into a
+PSGI env hash and then run the PSGI application, and returns the
+response as a \module{HTTP::Response} object.
+
+You can change this to live HTTP mode, by setting either a) the package
+variable \lstinline!$Plack::Test::Impl! or b) the environment variable
+\lstinline!PLACK_TEST_IMPL! to the string \lstinline!Server!.
+
+\inputperl{day13-4.pl}
+
+By using the environment variable, you don't really need to change the
+\file{.t} code:
+
+\begin{shell}
+$ env PLACK_TEST_IMPL=Server prove -l t/test.t
+\end{shell}
+
+This will run the PSGI application using the Standalone server backend
+and uses \module{LWP::UserAgent} to send the live HTTP request. You don't need to
+modify your testing client code, and the callback would automatically
+adjust host names and port numbers depending on the test configuration.
+
+\section{Test your web application framework with
+Plack::Test}\label{test-your-web-application-framework-with-placktest}
+
+Once again, the beauty of PSGI and Plack is that everything written to
+run for the PSGI interface can be used for \emph{any} web application
+frameworks that speaks PSGI. By
+\href{http://advent.plackperl.org/2009/12/day-7-use-web-application-framework-in-psgi.html}{running
+your web application framework in PSGI mode}, you can also use
+\module{Plack::Test}:
+
+\inputperl{day13-5.pl}
+
+You can of course do the same thing against any frameworks that supports
+PSGI.
+

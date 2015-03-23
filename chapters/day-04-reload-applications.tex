@@ -1,0 +1,84 @@
+\chapter{Reloading applications}\label{day-4-reloading-applications}
+
+\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{Yesterday}
+I introduced the basics of \program{plackup} and its command line options. Today
+I'll show you more!
+
+\section{Reload the application as
+necessary}\label{reload-the-application-as-necessary}
+
+During development you often change your Perl code, saved in
+\file{.psgi} or \file{.pm} files. Because the Plack server
+launched by the \program{plackup} command is a persistent process you need to
+restart your server whenever your code changes. This is a little
+painful.
+
+So there's an option to watch for changes to files under your working
+directory and reload the application as needed: \switch{-r} (or
+\switch{{-}{-}reload}).
+
+\begin{shell}
+$ plackup -r hello.psgi
+\end{shell}
+
+It will watch files under the current directory by default, but you can
+change it to watch additional locations by using the \switch{-R}
+option (note the uppercase).
+
+\begin{shell}
+$ plackup -R lib,/path/to/scripts hello.psgi
+\end{shell}
+
+As you can see, multiple paths can be monitored by combining them with
+\lstinline!,! (comma).
+
+By default \program{plackup} uses a dumb timer to scan the whole directory, but if
+you're on Linux and have \module{Linux::Inotify2} installed or on Mac OS and have
+\module{Mac::FSEvents} installed filesystem notification is used so it's more
+efficient.
+
+\section{-r vs Server
+auto-detection}\label{r-vs-server-auto-detection}
+
+In Day 3 I told you that \program{plackup}'s automatic server detection is smart
+enough to tell if PSGI application uses an event modules such as
+\module{AnyEvent} or \module{Coro} and choose the correct backend. Be aware that this
+automatic selection doesn't work if you use the \switch{-r} option
+because \program{plackup} uses a delayed loading technique to reload apps in
+forked processes. It's recommended that you explicitly set the server
+with the \switch{-s} option when using the \switch{-r} option.
+
+\section{Reloading sucks? Shotgun!}\label{reloading-sucks-shotgun}
+
+Reloading a module or application in a persistent Perl process can cause
+problems. For instance, module package variables could be redefined or
+overwritten and then get stuck in a bad state.
+
+Plack now has the Shotgun loader, inspired by
+\href{http://github.com/rtomayko/shotgun}{Rack's shotgun}, which solves
+the reloading problem by loading the app on \emph{every request} in a
+forked child environment.
+
+Using the Shotgun loader is easy:
+
+\begin{shell}
+$ plackup -L Shotgun myapp.psgi
+\end{shell}
+
+This will delay the compilation of your application to runtime. When a
+request is received it will fork off a new child process to compile your
+app and return the PSGI response over the pipe. You can also preload
+modules in the parent process that are not likely to be updated to
+reduce the time needed to compile your application.
+
+For instance, if your application uses \module{Moose} and \module{DBIx::Class} then use
+the following options:
+
+\begin{shell}
+$ plackup -MMoose -MDBIx::Class -L Shotgun myapp.psgi
+\end{shell}
+
+This speeds up the time required to compile your application in the
+runtime.
+
+

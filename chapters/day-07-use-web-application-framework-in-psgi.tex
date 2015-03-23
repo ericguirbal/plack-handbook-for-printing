@@ -1,0 +1,50 @@
+\chapter{Use web application framework in PSGI}\label{day-7-use-web-application-framework-in-psgi}
+
+Since we started the Plack and PSGI project in September 2009 there has
+been a lot of feedback from the authors of popular frameworks such as
+Catalyst, Jifty, and \module{CGI::Application}.
+
+\href{http://cgi-app.org/}{\module{CGI::Application}} is one of the most
+``traditional'' CGI-based web application framework and it uses \module{CGI.pm}
+exclusively to handle web server environments just like we
+\href{http://advent.plackperl.org/2009/12/day-6-convert-cgi-apps-to-psgi.html}{discussed
+yesterday}.
+
+Mark Stosberg, the current maintainer of \module{CGI::Application}, and I have
+been collaborating on adding PSGI support to \module{CGI::Application}. We
+thought of multiple approaches including adding native PSGI support to
+\module{CGI.pm}, but we ended up implementing
+\href{http://search.cpan.org/perldoc?CGI::PSGI}{\module{CGI::PSGI}} as a \module{CGI.pm}
+wrapper and then using
+\href{http://search.cpan.org/perldoc?CGI::Application::PSGI}{\module{CGI::Application::PSGI}}
+to run existing \module{CGI::Application} code \emph{unmodified} in a PSGI
+compatible mode.
+
+All you have to do is install \module{CGI::Application::PSGI} from CPAN and write
+a \file{.psgi} file that looks like this:
+
+\inputperl{day7-1.pl}
+
+Then use
+\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{\program{plackup}}
+to run the application with a standalone server or any of the other
+backends.
+
+Similarly, most web frameworks that support PSGI provide a plugin,
+engine, or adapter to make the framework run in PSGI mode. For instance,
+\href{http://www.catalystframework.org/}{Catalyst} has a
+\module{Catalyst::Engine::*} web server abstraction and
+\href{http://search.cpan.org/perldoc?Catalyst::Engine::PSGI}{\module{Catalyst::Engine::PSGI}}
+is the engine to adapt Catalyst to run on PSGI. 
+
+\begin{note}
+  As of Catalyst 5.8 released in 2011, Catalyst supports PSGI by default and
+  there's no need to install a separate engine.)
+\end{note}
+
+The point is that with support from web frameworks you often won't need
+to modify a single line of code in your application to use PSGI. And by
+switching to PSGI there are lots of benefits like being able to use the
+toolchain of \program{plackup}, \module{Plack::Test}, and middleware which we'll discuss in
+future advent entries.
+

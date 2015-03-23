@@ -1,0 +1,63 @@
+\chapter{Hello World}\label{day-2-hello-world}
+
+The first program you write in any programming language is the one that
+prints ``Hello World''. Let's follow that tradition for PSGI as well.
+
+\begin{note}
+  Today's code is written to a raw PSGI interface to help
+you understand what's going on. In reality you should never have to do
+this unless you're a web application framework developer. Instead you
+should use one of the \href{http://plackperl.org/\#frameworks}{existing
+frameworks that supports PSGI}.
+\end{note}
+
+\section{Hello, World}\label{hello-world}
+
+Here's the minimal code that prints ``Hello World'' to the client:
+
+\inputperl{day2-1.pl}
+
+A PSGI application is a Perl subroutine reference (a coderef) and is
+usually referenced as \lstinline!$app! (it could be named anything
+obviously). It takes exactly one argument \lstinline!$env! (which is not
+used in this code) and returns an array ref containing status, headers,
+and body. That's it.
+
+Save this code in a file named \file{hello.psgi} and then use the
+\program{plackup} command to run it:
+
+\begin{shell}
+$ plackup hello.psgi
+HTTP::Server::PSGI: Accepting connections at http://0:5000/
+\end{shell}
+
+\program{plackup} runs your application with the default HTTP server
+\module{HTTP::Ser|ver::PSGI} on localhost port 5000. Open the URL
+\url{http://127.0.0.1:5000/} and you should see the ``Hello World'' page.
+
+\section{Give me something
+different}\label{give-me-something-different}
+
+Hello World is the simplest code imaginable. We can do more here. Let's
+read and display the client information using the PSGI environment hash.
+
+\inputperl{day2-2.pl}
+
+This code will display the remote address using the PSGI environment
+hash. It will normally be 127.0.0.1 if you're running the server on your
+localhost. The PSGI environment hash contains lots of information about
+an HTTP connection like incoming HTTP headers and request paths, much
+like the CGI environment variables.
+
+Want to display something that isn't just text? We can do this by
+reading a file:
+
+\inputperl{day2-3.pl}
+
+This app would serve \file{favicon.ico} if the request path looks like
+\url{/favicon.ico}, the ``Hello World'' page for requests to the root (\url{/}) and
+otherwise a 404. You can see that a Perl filehandle (\lstinline!$fh!) is
+a valid PSGI response, and you can use any valid HTTP status code for a
+response.
+
+
