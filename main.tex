@@ -88,7 +88,9 @@
 \titlespacing*{\section}
   {0pt}{*2}{*1}
 
-\renewcommand{\thesection}{\arabic{section}}
+% Remove the numbers from section headings
+\setcounter{secnumdepth}{0}
+
 \graphicspath{{images/}}
 
 % Create a footnote for each href link
