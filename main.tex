@@ -136,24 +136,27 @@
 % Command-line switch
 \newcommand*{\switch}[1]{\textit{#1}}
 
-% Recompile SVG file to PDF if necessary
+% How to include an SVG image in LaTeX, Johan B. C. Engelen
+% http://mirrors.ircam.fr/pub/CTAN/info/svg-inkscape/InkscapePDFLaTeX.pdf
 \newcommand{\executeiffilenewer}[3]{%
   \ifnum\pdfstrcmp{\pdffilemoddate{#1}}%
   {\pdffilemoddate{#2}}>0%
   \immediate\write18{#3}\fi%
 }
-% Include an SVG file
 \newcommand{\includesvg}[2][]{%
   \executeiffilenewer{#2.svg}{#2.pdf}%
   {inkscape -z -D --file=#2.svg --export-pdf=#2.pdf --export-pdf}%
   \includegraphics[#1]{#2.pdf}%
 }
+
 \newcommand{\downloadcoverphoto}[2]{%
   \IfFileExists{images/#1}{}{\immediate\write18{wget -O images/#1 "#2"}}%
 }
 
 \newcommand{\inputperl}[1]{%
   \executeiffilenewer{codes/#1}{build/#1}%
+  {perltidy codes/#1 -pro=.perltidyrc -l=63 > build/#1}%
+  \executeiffilenewer{.perltidyrc}{build/#1}%
   {perltidy codes/#1 -pro=.perltidyrc -l=63 > build/#1}%
   \lstinputlisting{build/#1}
 }
