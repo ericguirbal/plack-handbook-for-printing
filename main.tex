@@ -15,6 +15,7 @@
 \usepackage{xstring}
 \usepackage{graphicx}
 \usepackage{wallpaper}
+\usepackage{chngcntr}
 \usepackage{listings}
 \lstset{
   basicstyle=\normalsize\ttfamily\lst@ifdisplaystyle\footnotesize\fi,
@@ -90,6 +91,9 @@
 
 % Remove the numbers from section headings
 \setcounter{secnumdepth}{0}
+
+% Continuous figure numbering
+\counterwithout{figure}{chapter}
 
 \graphicspath{{images/}}
 
