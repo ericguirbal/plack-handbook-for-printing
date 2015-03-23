@@ -46,6 +46,7 @@
   {}
 
 \usepackage{titlesec}
+\usepackage{titletoc}
 
 % Headers and footers
 \usepackage{fancyhdr}
@@ -88,6 +89,22 @@
   {}
 \titlespacing*{\section}
   {0pt}{*2}{*1}
+
+% Table of content
+\titlecontents{chapter}
+  [0pt] % left
+  {\addvspace{3.6pt}} % above
+  {\bfseries{\scshape\lsstyle\chaptername\ \thecontentslabel\ /\ }} % before with label
+  {\bfseries \thecontentslabel} % before without label
+  {\titlerule*[0.5pc]{.}\contentspage} % filler and page
+  [] % after
+\titlecontents*{section}
+  [0pt]
+  {\small\itshape}
+  {}
+  {}
+  {\hspace{0.5em}\thecontentspage}
+  [~\textbullet\ ]
 
 % Remove the numbers from section headings
 \setcounter{secnumdepth}{0}
