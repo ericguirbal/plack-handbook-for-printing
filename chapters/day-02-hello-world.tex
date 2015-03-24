@@ -31,14 +31,14 @@ $ plackup hello.psgi
 HTTP::Server::PSGI: Accepting connections at http://0:5000/
 \end{shell}
 
-\program{plackup} runs your application with the default HTTP server
+The \program{plackup} command runs your application with the default HTTP server
 \module{HTTP::Ser|ver::PSGI} on localhost port 5000. Open the URL
 \url{http://127.0.0.1:5000/} and you should see the ``Hello World'' page.
 
 \section{Give me something
 different}\label{give-me-something-different}
 
-Hello World is the simplest code imaginable. We can do more here. Let's
+The program \program{Hello World} is the simplest code imaginable. We can do more here. Let's
 read and display the client information using the PSGI environment hash.
 
 \inputperl{day2-2.pl}
