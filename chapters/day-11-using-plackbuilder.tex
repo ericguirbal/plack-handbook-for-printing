@@ -1,7 +1,6 @@
 \chapter{Using Plack::Builder}\label{day-11-using-plackbuilder}
 
-\href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{Yesterday}
-we saw how to enable Plack middleware components in \file{.psgi} file, using
+Yesterday we saw how to enable Plack middleware components in \file{.psgi} file, using
 its \lstinline!wrap! class method. The way you \lstinline!use! the
 middleware and then wrap the \lstinline!$app! with \lstinline!wrap! is
 tedious and not intuitive, so we have a DSL (Domain Specific Language)
@@ -22,16 +21,14 @@ So it's equivalent to:
 %
 but without lots of \lstinline!use!ing the module which is anti DRY.
 
-\section{Outer to Inner, Top to the
-bottom}\label{outer-to-inner-top-to-the-bottom}
+\section{Outer to inner, top to the bottom}\label{outer-to-inner-top-to-the-bottom}
 
 Notice that the order of middleware wrapping is in reverse? The
 builder/enable DSL allows you to \emph{wrap} application so the line
 close to the original \lstinline!$app! is \emph{inner}, while the first
 one in the top is \emph{outer}. You can compare that with
-\href{http://pylonshq.com/docs/en/0.9.7/_images/pylons_as_onion.png}{the
-onion picture} and see that it's more obvious: something closer to the
-application is inner.
+onion picture (see figure~\ref{fig:onion} page~\pageref{fig:onion}) and see that it's 
+more obvious: something closer to the application is inner.
 
 The keyword \lstinline!enable! takes the middleware name without the
 \module{Plack::Middleware::} prefix but in case you want to enable some other
@@ -48,7 +45,7 @@ If you're curious what \module{Plack::Builder} is doing, take a look at the code
 and see what's happening. The \lstinline!builder! takes the code block
 and executes the code, and take the result (return value of the last
 statement) as an original application (\lstinline!$app!), and then
-returns the wrapped application by applying Middleware in the reverse
+returns the wrapped application by applying middleware in the reverse
 order. So it is important to have \lstinline!$app! in the last line
 inside the \lstinline!builder! block, and have the \lstinline!builder!
 statement as the final statement in \file{.psgi} file as well.
@@ -58,7 +55,7 @@ statement as the final statement in \file{.psgi} file as well.
 This idea of \module{Plack::Builder} is totally an inspiration by
 \href{http://m.onkey.org/2008/11/18/ruby-on-rack-2-rack-builder}{\module{Rack::Builder}}.
 You can see that they use the \lstinline!use! keyword but obviously we
-can's \emph{use} that in Perl :) so we chose \lstinline!enable! instead.
+can't \emph{use} that in Perl :) so we chose \lstinline!enable! instead.
 You can see that they have \lstinline!map! which is to map applications
 to a different path, and we'll talk about its equivalent in Plack
 tomorrow ;)

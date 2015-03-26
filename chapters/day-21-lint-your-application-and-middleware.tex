@@ -33,13 +33,13 @@ Not an ARRAY reference at lib/Plack/Util.pm line 145.
 \end{shell}
 %
 or something similar. This is because the response format is invalid per
-the PSGI interface: the status code is not valid, HTTP headers is not an
+the PSGI interface: the status code is not valid, HTTP headers are not an
 array ref but a hash reference and the response body is a string instead
 of an array ref.
 
 \section{Lint middleware}\label{lint-middleware}
 
-Checking them in the individual server for every request at a run time
+Checking them in the individual server for every request at runtime
 is \emph{possible} but not \emph{ideal}: that will be a duplicate of
 codes, and doing so in every request is not efficient from the
 performance standpoint. We should better validate if an application,
@@ -53,7 +53,7 @@ interface. Run the application above with the middleware:
 \begin{shell}
 $ plackup -e 'enable "Lint"; sub { return [ 0, { "Content-Type"=>"text/html" }, ["Hello"] ] }'
 \end{shell}
-%
+
 and now requests for the application would give a nice stack trace
 saying:
 

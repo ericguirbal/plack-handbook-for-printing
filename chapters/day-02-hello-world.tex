@@ -38,8 +38,8 @@ The \program{plackup} command runs your application with the default HTTP server
 \section{Give me something
 different}\label{give-me-something-different}
 
-The program \program{Hello World} is the simplest code imaginable. We can do more here. Let's
-read and display the client information using the PSGI environment hash.
+The ``Hello World'' program is the simplest code imaginable. We can do more here. Let's
+read and display the client information using the PSGI environment hash:
 
 \inputperl{day2-2.pl}
 
@@ -56,7 +56,7 @@ reading a file:
 
 This app would serve \file{favicon.ico} if the request path looks like
 \url{/favicon.ico}, the ``Hello World'' page for requests to the root (\url{/}) and
-otherwise a 404. You can see that a Perl filehandle (\lstinline!$fh!) is
+otherwise a~404. You can see that a Perl filehandle (\lstinline!$fh!) is
 a valid PSGI response, and you can use any valid HTTP status code for a
 response.
 

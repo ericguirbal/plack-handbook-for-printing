@@ -4,7 +4,7 @@
 Let's finish up this middleware discovery with ``Do It Yourself''
 tutorial now.
 
-\section{Writing Middleware}\label{writing-middleware}
+\section{Writing middleware}\label{writing-middleware}
 
 PSGI middleware behaves like a normal PSGI application but wraps the
 original PSGI application, so from the server it looks like an
@@ -27,11 +27,10 @@ default Access Log would say:
 Gecko) Version/4.0.4 Safari/531.21.10 (Mobile Safari)"
 \end{shell}
 
-You can see "(Mobile Safari)" is added to the tail of User-Agent
+You can see \lstinline!" (Mobile Safari)"! is added to the tail of User-Agent
 string.
 
-\section{Make it a reusable
-Middleware}\label{make-it-a-reusable-middleware}
+\section{Make it a reusable middleware}\label{make-it-a-reusable-middleware}
 
 So that was a good example of writing your own middleware in
 \file{.psgi}. If it is one-time middleware that you can quickly

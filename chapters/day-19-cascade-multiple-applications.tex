@@ -23,14 +23,14 @@ handlers}.
 
 \section{Cascade Application}\label{cascade-application}
 
-\module{Plack::App::Cascade} allows you to composite multiple applications in
-order and runs until it returns non-404 responses.
+\module{Plack::App::Cascade} allows you to compound multiple applications and
+tries them to return the first non-404 response.
 
 \inputperl{day19-1.pl}
 
-This application is mapped to \lstinline!/static! using URLMap, and all
+This application is mapped to \file{/static} using URLMap, and all
 requests will try the three directories specified in \lstinline!@paths!
-using \module{App::File} application and returns the first found files. It might
+using \module{App::File} application and returns the first found file. It might
 be useful if you want to serve static files but want to cascade from
 multiple directories like this.
 
@@ -40,11 +40,11 @@ multiple directories like this.
 
 This will create two applications, one with Catalyst and the other with
 \module{CGI::Application} and runs two applications in order. Suppose you have an
-overlapping URL structure and \lstinline!/what/ever.cat! served with the
-Catalyst application and \lstinline!/what/ever.cgiapp! served with the
+overlapping URL structure and \file{/what/ever.cat} served with the
+Catalyst application and \file{what/ever.cgiapp} served with the
 \module{CGI::Application} app.
 
-Well that might sound crazy and i guess it's better to use URLMap to map
+Well that might sound crazy and I guess it's better to use URLMap to map
 two applications in different paths, but if you \emph{really want} to
 cascade them, this is the way to go :)
 

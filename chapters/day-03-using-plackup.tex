@@ -8,7 +8,7 @@ application.
 The script \program{plackup} is a command line launcher of PSGI applications inspired by
 Rack's rackup command. It can be used to run any PSGI application saved
 in a \file{.psgi} file with one of the PSGI web server backends using Plack
-handlers. The usage is simple: just pass a \file{.psgi} file path to the
+handlers. The usage is simple; just pass a \file{.psgi} file path to the
 command:
 
 \begin{shell}
@@ -31,7 +31,7 @@ The default backend is chosen using one of the following methods:
   \lstinline!GATEWAY_INTERFACE! or \lstinline!FCGI_ROLE! is set the
   backend for CGI or FCGI is used accordingly.
 \item
-  If the loaded \lstinline!.psgi! file uses a specific event module like
+  If the loaded \file{.psgi} file uses a specific event module like
   \module{Any|Event}, \module{Co|ro} or \module{POE} the equivalent and most appropriate backend is
   chosen automatically.
 \item
@@ -40,7 +40,7 @@ The default backend is chosen using one of the following methods:
 \end{itemize}
 
 You can also specify the backend yourself from the command line using
-the \switch{-s} or \switch{{-}{-}server} switch:
+the \switch{-s} (or \switch{{-}{-}server}) switch:
 
 \begin{shell}
 $ plackup -s Starman hello.psgi

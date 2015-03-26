@@ -30,18 +30,17 @@ $ plackup -R lib,/path/to/scripts hello.psgi
 \end{shell}
 
 As you can see, multiple paths can be monitored by combining them with
-\lstinline!,! (comma).
+a comma.
 
 By default \program{plackup} uses a dumb timer to scan the whole directory, but if
 you're on Linux and have \module{Linux::Inotify2} installed or on Mac OS and have
 \module{Mac::FSEvents} installed filesystem notification is used so it's more
 efficient.
 
-\section{-r vs Server
-auto-detection}\label{r-vs-server-auto-detection}
+\section{Server auto-detection vs -r}\label{r-vs-server-auto-detection}
 
 In Day 3 I told you that \program{plackup}'s automatic server detection is smart
-enough to tell if PSGI application uses an event modules such as
+enough to tell if PSGI application uses an event module such as
 \module{AnyEvent} or \module{Coro} and choose the correct backend. Be aware that this
 automatic selection doesn't work if you use the \switch{-r} option
 because \program{plackup} uses a delayed loading technique to reload apps in
@@ -55,7 +54,7 @@ problems. For instance, module package variables could be redefined or
 overwritten and then get stuck in a bad state.
 
 Plack now has the Shotgun loader, inspired by
-\href{http://github.com/rtomayko/shotgun}{Rack's shotgun}, which solves
+\href{http://github.com/rtomayko/shotgun}{Rack's Shotgun}, which solves
 the reloading problem by loading the app on \emph{every request} in a
 forked child environment.
 
@@ -65,7 +64,7 @@ Using the Shotgun loader is easy:
 $ plackup -L Shotgun myapp.psgi
 \end{shell}
 
-This will delay the compilation of your application to runtime. When a
+This will delay the compilation of your application until runtime. When a
 request is received it will fork off a new child process to compile your
 app and return the PSGI response over the pipe. You can also preload
 modules in the parent process that are not likely to be updated to
@@ -78,7 +77,6 @@ the following options:
 $ plackup -MMoose -MDBIx::Class -L Shotgun myapp.psgi
 \end{shell}
 
-This speeds up the time required to compile your application in the
-runtime.
+This speeds up the time required to compile your application at runtime.
 
 

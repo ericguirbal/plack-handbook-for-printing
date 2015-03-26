@@ -11,6 +11,7 @@ a server and an application.
 \includesvg[width=8cm]{images/pylons_as_onion}
 \caption{WSGI middleware onion 
   \emph{(Image courtesy of Pylons project for Python WSGI)}}
+\label{fig:onion}
 \end{figure}
 
 This picture illustrates the middleware concept very well. The PSGI
@@ -27,9 +28,9 @@ errors to logging output or wrapping JSON output with JSONP.
 
 \href{http://search.cpan.org/perldoc?Plack::Middleware}{\module{Plack::Middleware}}
 is a base class for middleware components and it allows you to write
-middleware really simply but in a reusable fashion.
+a middleware really simply but in a reusable fashion.
 
-Using Middleware components written with \module{Plack::Middleware} is easy, just
+Using middleware components written with \module{Plack::Middleware} is easy, just
 wrap the original application with \lstinline!wrap! method:
 
 \inputperl{day10-1.pl}
@@ -56,9 +57,9 @@ solution for that using a DSL style syntax.
 
 We'll see more about \module{Plack::Builder} tomorrow.
 
-\section{Middleware and Frameworks}\label{middleware-and-frameworks}
+\section{Middleware and frameworks}\label{middleware-and-frameworks}
 
-The beauty of Middleware is that it can wrap \emph{any} PSGI
+The beauty of middleware is that it can wrap \emph{any} PSGI
 application. It might not be obvious from the code examples, but the
 wrapped application can be anything, which means you can
 \href{http://advent.plackperl.org/2009/12/day-7-use-web-application-framework-in-psgi.html}{run

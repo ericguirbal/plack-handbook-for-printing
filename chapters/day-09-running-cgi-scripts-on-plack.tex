@@ -8,12 +8,12 @@ CGI scripts as a PSGI application, most of the time unmodified.
 \href{http://search.cpan.org/perldoc?CGI::PSGI}{\module{CGI::PSGI}} is a subclass
 of \module{CGI.pm} to allow you a very easy migration from \module{CGI.pm} with only
 \emph{a few lines of code changes} to run it on PSGI environment. But
-what about a messy or legacy CGI script that just prints to STDOUT a lot
+what about a messy or legacy CGI script that just prints to \lstinline!STDOUT! a lot
 and is not easy to fix?
 
 \href{http://search.cpan.org/perldoc?CGI::Emulate::PSGI}{\module{CGI::Emulate::PSGI}}
 is a module to run any CGI based perl program in a PSGI environment.
-Whatever messy/old script that prints stuff to STDOUT or directly reads
+Whatever messy/old script that prints stuff to \lstinline!STDOUT! or directly reads
 HTTP headers from \lstinline!%ENV! would just work because that's what
 \module{CGI::Emulate::PSGI} tries to emulate. The original POD of
 \module{CGI::Emulate::PSGI} was illustrating it like:
@@ -38,7 +38,7 @@ There's also
 \href{http://search.cpan.org/perldoc?Plack::App::CGIBin}{\module{Plack::App::CGIBin}}
 Plack application to run existing CGI scripts written in Perl as PSGI
 applications, suppose you have bunch of CGI scripts in
-\lstinline!/path/to/cgi-bin!, you'll run the server with:
+\file{/path/to/cgi-bin}, you'll run the server with:
 
 \begin{shell}
 $ plackup -MPlack::App::CGIBin -e 'Plack::App::CGIBin->new(root => "/path/to/cgi-bin"))'

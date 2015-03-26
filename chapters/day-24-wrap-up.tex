@@ -17,11 +17,11 @@ or Session.
 
 Do not write your application logic in \file{.psgi} files using
 \module{Plack::Request}. It's like writing a thousand lines of CGI script using
-\module{CGI.pm}, so if you think that's your favorite i won't give you any
+\module{CGI.pm}, so if you think that's your favorite I won't give you any
 further advice, but usually you want to make your application
 \href{http://advent.plackperl.org/2009/12/day-13-use-placktest-to-test-your-application.html}{testable}
 and reusable by making it a class or an object. Then your
-\lstinline!.psgi! code is just a few lines of code to create a PSGI
+\file{.psgi} code is just a few lines of code to create a PSGI
 application out of it and apply some middleware components.
 
 Think twice before using \module{Plack::App::*} namespace. \module{Plack::App} namespace
@@ -43,7 +43,7 @@ CPAN with
 \href{http://search.cpan.org/search?query=psgi\&mode=module}{PSGI}. I
 keep track of good blog posts and stuff on delicious, so you can see
 them tagged with \href{http://delicious.com/miyagawa/psgi}{psgi} or
-\href{http://delicious.com/miyagawa/plack}{Plack}.
+\href{http://delicious.com/miyagawa/plack}{plack}.
 
 \section{Getting in touch with the dev
 team}\label{getting-in-touch-with-the-dev-team}
