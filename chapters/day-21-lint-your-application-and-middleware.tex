@@ -53,7 +53,7 @@ interface. Run the application above with the middleware:
 \begin{shell}
 $ plackup -e 'enable "Lint"; sub { return [ 0, { "Content-Type"=>"text/html" }, ["Hello"] ] }'
 \end{shell}
-
+%
 and now requests for the application would give a nice stack trace
 saying:
 
