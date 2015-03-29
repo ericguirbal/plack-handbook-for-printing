@@ -2,11 +2,9 @@
 
 Plack is not a framework per se, but is more of a toolkit that contains
 PSGI server implementations as well as utilities like
-\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{\program{plackup}},
-\href{http://advent.plackperl.org/2009/12/day-13-use-placktest-to-test-your-application.html}{\module{Plack::Test}}
-and
-\href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{middleware
-components}.
+\program{plackup} (\autoref{day-3-using-plackup}),
+\module{Plack::Test} (\autoref{day-13-use-placktest-to-test-your-application})
+and middleware components (\autoref{day-10-using-plack-middleware}).
 
 Since Plack project is a revolution from
 \href{http://search.cpan.org/perldoc?HTTP::Engine}{\module{HTTP::Engine}}, there
@@ -52,12 +50,9 @@ a large scale application. It's exactly like writing a thousand lines of
 into a module (\file{.pm} files). The same thing applies to
 \file{.psgi} file: it's best to create an application class by
 using and possibly extending \module{Plack::Request}, and then have just a few
-lines of code in \file{.psgi} file with
-\href{http://advent.plackperl.org/2009/12/day-11-using-plackbuilder.html}{\module{Plack::Builder}
-to configure middleware components}.
+lines of code in \file{.psgi} file with \module{Plack::Builder}
+to configure middleware components (\autoref{day-11-using-plackbuilder}).
 
 \module{Plack::Request} is also supposed to be used from a web application
-framework to
-\href{http://advent.plackperl.org/2009/12/day-8-adapting-web-frameworks-to-psgi.html}{adapt
-to PSGI interface}.
+framework to adapt to PSGI interface (\autoref{day-8-adapting-web-frameworks-to-psgi}).
 

@@ -6,9 +6,8 @@ Catalyst, Jifty, and \module{CGI::Application}.
 
 \href{http://cgi-app.org/}{\module{CGI::Application}} is one of the most
 ``traditional'' CGI-based web application framework and it uses \module{CGI.pm}
-exclusively to handle web server environments just like we
-\href{http://advent.plackperl.org/2009/12/day-6-convert-cgi-apps-to-psgi.html}{discussed
-yesterday}.
+exclusively to handle web server environments just like we discussed
+yesterday.
 
 Mark Stosberg, the current maintainer of \module{CGI::Application}, and I have
 been collaborating on adding PSGI support to \module{CGI::Application}. We
@@ -25,8 +24,7 @@ a \file{.psgi} file that looks like this:
 
 \inputperl{day7-1.pl}
 
-Then use
-\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{\program{plackup}}
+Then use \program{plackup} (\autoref{day-3-using-plackup})
 to run the application with a standalone server or any of the other
 backends.
 

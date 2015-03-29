@@ -1,16 +1,13 @@
 \chapter{Serving static files from your application}
 \label{day-17-serving-static-files-from-your-application}
 
-On
-\href{http://advent.plackperl.org/2009/12/day-5-run-a-static-file-web-server-with-plack.html}{day
-5} we talked about serving files from the current directory using
-\program{plackup}. Now that we've learned how to
-\href{http://advent.plackperl.org/2009/12/day-10-using-plack-middleware.html}{use
-middleware} and
-\href{http://advent.plackperl.org/2009/12/day-12-maps-multiple-apps-with-mount-and-urlmap.html}{compound
-multiple applications with URLMap} it's extremely trivial to add a
-functionality you definitely need when developing an application:
-serving static files.
+On \autoref{day-5-run-a-static-web-server-with-plack} we talked about 
+serving files from the current directory using
+\program{plackup}. Now that we've learned how to use middleware 
+(\autoref{day-10-using-plack-middleware}) and compound multiple applications 
+with URLMap (\autoref{day-12-maps-multiple-apps-with-mount-and-urlmap}) 
+it's extremely trivial to add a functionality you definitely need when
+developing an application: serving static files.
 
 \section{Serving files from a certain
 path}\label{serving-files-from-a-certain-path}
@@ -48,9 +45,8 @@ just pass through to the original \lstinline!$app!.
 App::File}\label{do-it-your-own-with-urlmap-and-appfile}
 
 Just like Perl there's more than one way to do it. When you grok how to
-use
-\href{http://advent.plackperl.org/2009/12/day-12-maps-multiple-apps-with-mount-and-urlmap.html}{mount
-and URLMap} then using \module{App::File} with mount should be more intuitive.
+use mount and URLMap (\autoref{day-12-maps-multiple-apps-with-mount-and-urlmap}) 
+then using \module{App::File} with mount should be more intuitive.
 The previous example can be written like this:
 
 \inputperl{day17-3.pl}

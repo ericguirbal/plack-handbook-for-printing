@@ -44,15 +44,13 @@ That's it. All you have to do is to inherit from \module{Plack::Middleware} and
 defines options that your middleware would take, and implement
 \lstinline!call! method that would delegate to \lstinline!$self->app!
 which is a wrapped application. This middleware is now compatible to
-\href{http://advent.plackperl.org/2009/12/day-11-using-plackbuilder.html}{\module{Plack::Builder}
-DSL} so you can say:
+\module{Plack::Builder} DSL (\autoref{day-11-using-plackbuilder}) so you can say:
 
 \inputperl{day23-3.pl}
 %
 to fake all incoming requests as it comes with the good old Internet
 Explorer, and you can also use \lstinline!enable_if! to
-\href{http://advent.plackperl.org/2009/12/day-18-load-middleware-conditionally.html}{conditionally
-enable} this middleware.
+conditionally enable this middleware (\autoref{day-18-load-middleware-conditionally}).
 
 \section{Post process requests}\label{post-process-requests}
 

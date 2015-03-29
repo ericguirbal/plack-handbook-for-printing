@@ -1,16 +1,15 @@
 \chapter{Lint your application and middleware}
 \label{day-21-lint-your-application-and-middleware}
 
-We've been talking about
-\href{http://advent.plackperl.org/2009/12/day-8-adapting-web-frameworks-to-psgi.html}{adapting
-existing web frameworks to PSGI} and writing a new application using
+We've been talking about adapting existing web frameworks to PSGI
+(\autoref{day-8-adapting-web-frameworks-to-psgi})
+and writing a new application using
 PSGI as an interface, but we haven't talked about error handling.
 
 \section{Handling errors}\label{handling-errors}
 
-We have
-\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{an
-awesome stack trace} middleware enabled by default, so if an end user
+We have an awesome stack trace (\autoref{day-3-using-plackup})
+middleware enabled by default, so if an end user
 application throws an error, we can catch them and display a nice error
 page. But what if there is an error or a bug in one of middleware
 components, or web application framework adapters themselves?

@@ -1,10 +1,9 @@
 \chapter{Cascade multiple applications}
 \label{day-19-cascade-multiple-applications}
 
-\href{http://advent.plackperl.org/2009/12/day-18-load-middleware-conditionally.html}{Conditional
-middleware} and
-\href{http://advent.plackperl.org/2009/12/day-12-maps-multiple-apps-with-mount-and-urlmap.html}{URLMap
-app} have something in common: they're PSGI applications but both takes
+Conditional middleware (\autoref{day-18-load-middleware-conditionally}) and
+URLMap app (\autoref{day-12-maps-multiple-apps-with-mount-and-urlmap})
+have something in common: they're PSGI applications but both take
 PSGI application or middleware and dispatch them. This is the beauty of
 PSGI application and middleware architecture and today's application is
 another example of this.

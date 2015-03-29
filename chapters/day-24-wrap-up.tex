@@ -18,8 +18,8 @@ or Session.
 Do not write your application logic in \file{.psgi} files using
 \module{Plack::Request}. It's like writing a thousand lines of CGI script using
 \module{CGI.pm}, so if you think that's your favorite I won't give you any
-further advice, but usually you want to make your application
-\href{http://advent.plackperl.org/2009/12/day-13-use-placktest-to-test-your-application.html}{testable}
+further advice, but usually you want to make your application testable
+(\autoref{day-13-use-placktest-to-test-your-application})
 and reusable by making it a class or an object. Then your
 \file{.psgi} code is just a few lines of code to create a PSGI
 application out of it and apply some middleware components.

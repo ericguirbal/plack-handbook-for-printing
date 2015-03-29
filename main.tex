@@ -2,7 +2,6 @@
 \usepackage{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
-\addto\captionsenglish{\renewcommand{\chaptername}{Day}}
 \usepackage{libertine}
 \usepackage[scaled=0.95]{inconsolata}
 \usepackage{microtype}
@@ -71,6 +70,10 @@
 
 \usepackage{hyperref}
 \let\urlfromhyperref\url
+\addto\extrasenglish{%
+  \renewcommand{\chaptername}{Day}%
+  \renewcommand{\chapterautorefname}{Day}%
+}
 \PassOptionsToPackage{hyphens}{url}
 
 \titleformat{\chapter}[display]

@@ -36,9 +36,8 @@ wrap the original application with \lstinline!wrap! method:
 \inputperl{day10-1.pl}
 
 This example wraps the original application with StackTrace middleware
-(which is actually enabled
-\href{http://advent.plackperl.org/2009/12/day-3-using-plackup.html}{by
-default using \program{plackup}}) with the \lstinline!wrap! method. So when the
+(which is actually enabled by default using \program{plackup} 
+(\autoref{day-3-using-plackup})) with the \lstinline!wrap! method. So when the
 wrapped application throws an error, the middleware component catches
 the error to
 \href{http://bulknews.typepad.com/blog/2009/10/develstacktraceashtml.html}{display
@@ -61,9 +60,9 @@ We'll see more about \module{Plack::Builder} tomorrow.
 
 The beauty of middleware is that it can wrap \emph{any} PSGI
 application. It might not be obvious from the code examples, but the
-wrapped application can be anything, which means you can
-\href{http://advent.plackperl.org/2009/12/day-7-use-web-application-framework-in-psgi.html}{run
-your existing web application in the PSGI mode} and apply middleware
+wrapped application can be anything, which means you can run
+your existing web application in the PSGI mode 
+(\autoref{day-7-use-web-application-framework-in-psgi}) and apply middleware
 components to it. For instance, with \module{CGI::Application}:
 
 \inputperl{day10-4.pl}
