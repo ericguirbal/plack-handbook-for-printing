@@ -2,7 +2,7 @@ language: perl
 
 install: 
   - sudo apt-get install texlive-latex-recommended texlive-latex-extra
-  - sudo apt-get texlive-fonts-extra
+  - sudo apt-get install texlive-fonts-extra
   - sudo apt-get install wget inkscape perltidy
 
 script: 
